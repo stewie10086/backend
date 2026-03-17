@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账号注册</title>
+    <style>
+        /* 简单的页面样式 */
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .register-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 350px; }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .captcha-row { display: flex; gap: 10px; }
+        .captcha-row input { flex: 1; }
+        button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 6px; background-color: #007bff; color: white; font-weight: bold; transition: background 0.3s; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .submit-btn { width: 100%; background-color: #28a745; margin-top: 10px; }
+        .submit-btn:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+    <h2>创建账号</h2>
+    <form id="registerForm">
+        <div class="input-group">
+            <label for="account">手机号或邮箱</label>
+            <input type="text" id="account" placeholder="请输入注册账号" required>
+        </div>
+
+        <div class="input-group">
+            <label for="code">验证码</label>
+            <div class="captcha-row">
+                <input type="text" id="code" placeholder="输入验证码" required>
+                <button type="button" id="getCaptchaBtn">获取验证码</button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="password">设置密码</label>
+            <input type="password" id="password" placeholder="请输入密码" required>
+        </div>
+
+        <button type="submit" class="submit-btn">立即注册</button>
+    </form>
+</div>
+
+<script>
+    const getCaptchaBtn = document.getElementById('getCaptchaBtn');
+    const registerForm = document.getElementById('registerForm');
+
+    // 1. 获取验证码逻辑
+    getCaptchaBtn.onclick = async function() {
+        const account = document.getElementById('account').value;
+        if (!account) return alert('请先输入账号');
+
+        // 调用后端接口获取验证码
+        try {
+            this.disabled = true; // 禁用按钮
+            this.innerText = '发送中...';
+
+            const response = await fetch('http://localhost:8080/api/auth/send-captcha', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ account: account })
+            });
+
+            if (response.ok) {
+                startCountdown(); // 发送成功后开启倒计时
+            } else {
+                throw new Error('发送失败');
+            }
+        } catch (error) {
+            alert('验证码发送失败，请重试');
+            this.disabled = false;
+            this.innerText = '获取验证码';
+        }
+    };
+
+    // 倒计时辅助函数
+    function startCountdown() {
+        let timeLeft = 60;
+        getCaptchaBtn.innerText = `${timeLeft}s 后重发`;
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                getCaptchaBtn.innerText = `${timeLeft}s 后重发`;
+            } else {
+                clearInterval(timer);
+                getCaptchaBtn.disabled = false;
+                getCaptchaBtn.innerText = '获取验证码';
+            }
+        }, 1000);
+    }
+
+    // 2. 提交注册逻辑
+    registerForm.onsubmit = async function(e) {
+        e.preventDefault();
+
+        const formData = {
+            account: document.getElementById('account').value,
+            code: document.getElementById('code').value,
+            password: document.getElementById('password').value
+        };
+
+        try {
+            const response = await fetch('http://localhost:8080/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                alert('注册成功！');
+            } else {
+                alert('注册失败，请检查验证码或账号');
+            }
+        } catch (error) {
+            alert('系统繁忙，请稍后再试');
+        }
+    };
+</script>
+
+</body>
+</html>
