@@ -30,11 +30,8 @@ public class AuthService {
         // 创建新用户
         User user = new User();
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(rawPassword)); // 加密密码
+        user.setPasswordHash(passwordEncoder.encode(rawPassword)); // 加密密码
 
-        // 你的 SQL 要求 university_id 和 username 必填，这里先用 email 代替处理
-        user.setUniversityId("UID_" + System.currentTimeMillis());
-        user.setUsername(email.split("@")[0]);
 
         userRepository.save(user);
 
