@@ -64,6 +64,11 @@ public class AuthService {
         return userId;
     }
 
+    public User getSelfInfo(String userId){
+        return userRepository.findById(userId);
+
+    }
+
     public User login(String email, String password) {
         try {
             User user = userRepository.findByEmail(email)

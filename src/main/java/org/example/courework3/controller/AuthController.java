@@ -53,10 +53,12 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public  Result<Void> logout(@RequestHeader("Authorization") String authHeader){
+    public Result<Void> logout(@RequestHeader("Authorization") String authHeader){
         String token = authHeader.replace("Bearer ", "");
         authService.deleteToken(token);
         log.info("已登出！并删除相应token");
         return Result.success("已登出");
     }
+
+
 }
