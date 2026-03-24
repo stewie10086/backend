@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.example.courework3.entity.Role;
 import org.example.courework3.entity.User;
 import org.example.courework3.repository.UserRepository;
+import org.example.courework3.result.AuthResult;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -13,7 +16,54 @@ public class AuthService {
 
     private final StringRedisTemplate redisTemplate;
     private final UserRepository userRepository;
-//    private final BCryptPasswordEncoder passwordEncoder;
+
+    public void storeToken(AuthResult result) {
+        storeToken(result.getToken(), result.getUser().getId());
+    }
+
+    public void storeToken(String token, String userId) {
+
+        String tokenKey = "auth:token:" + token;
+        String userKey = "auth:user:" + userId;
+
+        // 1 踢掉旧登录
+        String oldToken = redisTemplate.opsForValue().get(userKey);
+
+        if (oldToken != null) {
+            String oldTokenKey = "auth:token:" + oldToken;
+            redisTemplate.delete(oldTokenKey);
+        }
+
+        // 2 写入新 token
+        redisTemplate.opsForValue().set(tokenKey, userId, 1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(userKey, token, 1, TimeUnit.DAYS);
+    }
+
+    public void deleteToken(String token){
+        String tokenKey = "auth:token:" + token;
+
+        String userId = redisTemplate.opsForValue().get(tokenKey);
+
+        if (userId != null) {
+            String userKey = "auth:user:" + userId;
+
+            redisTemplate.delete(tokenKey);
+            redisTemplate.delete(userKey);
+        }
+    }
+
+    public String getUserIdByToken(String token) {
+        String key = "auth:token:" + token;
+
+        String userId = redisTemplate.opsForValue().get(key);
+
+        if (userId == null) {
+            throw new RuntimeException("token无效或已过期");
+        }
+
+        return userId;
+    }
+
     public User login(String email, String password) {
         try {
             User user = userRepository.findByEmail(email)
@@ -27,6 +77,9 @@ public class AuthService {
             throw new RuntimeException(e);
         }
     }
+
+
+
     public User register(String name,String email, String code, String password) {
         // 校验验证码
         try {

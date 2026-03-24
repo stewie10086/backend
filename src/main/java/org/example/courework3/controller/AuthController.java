@@ -30,6 +30,8 @@ public class AuthController {
        User user = authService.login(request.getEmail(),request.getPassword());
        LoginResult loginResult = new LoginResult();
        loginResult.setUser(user);
+       authService.storeToken(loginResult);
+       log.info("登录成功！已返回并存储相应token");
        return Result.success(loginResult);
 
     }
@@ -45,6 +47,16 @@ public class AuthController {
         User user = authService.register(request.getName(),request.getEmail(), request.getVerificationCode(), request.getPassword());
         RegisterResult registerResult = new RegisterResult();
         registerResult.setUser(user);
+        authService.storeToken(registerResult);
+        log.info("注册成功！已返回并存储相应token");
         return Result.success(registerResult);
+    }
+
+    @PostMapping("/logout")
+    public  Result<Void> logout(@RequestHeader("Authorization") String authHeader){
+        String token = authHeader.replace("Bearer ", "");
+        authService.deleteToken(token);
+        log.info("已登出！并删除相应token");
+        return Result.success("已登出");
     }
 }
