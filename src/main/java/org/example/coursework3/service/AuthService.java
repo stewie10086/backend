@@ -1,7 +1,7 @@
 package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.coursework3.Exception.MsgException;
+import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.entity.Role;
 import org.example.coursework3.entity.User;
 import org.example.coursework3.repository.UserRepository;

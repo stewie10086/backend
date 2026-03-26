@@ -1,4 +1,4 @@
-package org.example.coursework3.Exception;
+package org.example.coursework3.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

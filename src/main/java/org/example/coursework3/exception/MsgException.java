@@ -1,4 +1,4 @@
-package org.example.coursework3.Exception;
+package org.example.coursework3.exception;
 
 public class MsgException extends RuntimeException {
     public MsgException(String message) {
