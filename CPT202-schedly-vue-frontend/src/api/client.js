@@ -1,0 +1,205 @@
+import axios from 'axios'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const TOKEN_KEY = 'booking.auth.token'
+
+export const http = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 20000
+})
+
+http.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY)
+  const url = config?.url || ''
+  const isPublicAuthEndpoint =
+    url.startsWith('/auth/login') ||
+    url.startsWith('/auth/login-by-email-code') ||
+    url.startsWith('/auth/register') ||
+    url.startsWith('/auth/send-email-code')
+
+  if (token && !isPublicAuthEndpoint) {
+    config.headers = config.headers ?? {}
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+function unwrap(res) {
+  return res?.data ?? res
+}
+
+function throwIfHtmlString(body) {
+  if (typeof body !== 'string') return
+  const t = body.trimStart()
+  if (t.startsWith('<') || t.startsWith('<!')) {
+    throw new Error(
+      '接口返回了 HTML 而非 JSON（请设置 VITE_API_BASE_URL，或在 vite 中把对应 API 路径代理到后端）'
+    )
+  }
+}
+
+/**
+ * 兼容：直接数组、Spring Result(data)、若依 rows、分页 list/records 等。
+ */
+export function extractListPayload(body) {
+  if (body == null) return []
+  throwIfHtmlString(body)
+  if (Array.isArray(body)) return body
+
+  const topKeys = ['data', 'result', 'rows', 'list', 'records', 'items', 'content']
+  for (const k of topKeys) {
+    const v = body[k]
+    if (Array.isArray(v)) return v
+  }
+
+  const inner = body.data
+  if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+    for (const k of ['list', 'records', 'rows', 'items', 'content']) {
+      if (Array.isArray(inner[k])) return inner[k]
+    }
+  }
+
+  return []
+}
+
+/** 单体 / Result.data 对象（非数组） */
+export function extractDataPayload(body) {
+  if (body == null) return null
+  throwIfHtmlString(body)
+  if (Array.isArray(body)) return null
+  if (typeof body !== 'object') return null
+  if (Object.prototype.hasOwnProperty.call(body, 'data')) {
+    const d = body.data
+    if (d != null && typeof d === 'object' && !Array.isArray(d)) return d
+  }
+  return body
+}
+
+/** 鍏煎锛氬崟涓璞℃垨鏁扮粍锛屼紭鍏堣繑鍥?Result.data */
+export function extractDataOrListPayload(body) {
+  if (body == null) return null
+  throwIfHtmlString(body)
+  if (Array.isArray(body)) return body
+  if (typeof body !== 'object') return body
+  if (Object.prototype.hasOwnProperty.call(body, 'data')) {
+    const data = body.data
+    if (Array.isArray(data)) return data
+    if (data != null && typeof data === 'object') return data
+  }
+  return body
+}
+
+/** 分页：items + total + page + pageSize，兼容 Result 包裹 */
+export function extractPagePayload(body) {
+  const empty = { items: [], total: 0, page: 1, pageSize: 10 }
+  if (body == null) return empty
+  throwIfHtmlString(body)
+
+  const coerce = (b) => {
+    if (!b || typeof b !== 'object') return null
+    if (Array.isArray(b)) return { items: b, total: b.length, page: 1, pageSize: b.length || 10 }
+    const d = b.data
+    if (d != null && typeof d === 'object') {
+      if (Array.isArray(d)) return { items: d, total: d.length, page: 1, pageSize: d.length || 10 }
+      const nestedItems = d.items ?? d.records ?? d.rows ?? d.list
+      if (Array.isArray(nestedItems)) return { ...d, items: nestedItems }
+    }
+    const items = b.items ?? b.records ?? b.rows ?? b.list
+    if (Array.isArray(items)) return { ...b, items }
+    return null
+  }
+
+  const page = coerce(body)
+  if (!page) return empty
+  const arr = Array.isArray(page.items) ? page.items : []
+  return {
+    items: arr,
+    total: page.total ?? page.totalCount ?? arr.length,
+    page: page.page ?? page.current ?? 1,
+    pageSize: page.pageSize ?? page.size ?? 10
+  }
+}
+
+function normalizeMeResponse(body) {
+  const d = extractDataPayload(body) ?? body
+  if (!d || typeof d !== 'object') return { user: null }
+  if (d.user) return { user: d.user }
+  if (d.id != null || d.email != null || d.role != null) return { user: d }
+  return { user: null }
+}
+
+function extractAuthPayload(body) {
+  const d = extractDataPayload(body) ?? body
+  if (!d || typeof d !== 'object') return body
+  const token = d.token ?? d.accessToken
+  const user = d.user
+  return { ...d, token, user }
+}
+
+function normalizeError(err) {
+  const status = err?.response?.status
+  const data = err?.response?.data
+  const code = data?.code
+  const message = data?.message || err?.message || '请求失败'
+  return { status, code, message, raw: err, data }
+}
+
+async function request(promise) {
+  try {
+    return unwrap(await promise)
+  } catch (err) {
+    throw normalizeError(err)
+  }
+}
+
+export const api = {
+  sendRegisterEmailCode: (payload) => request(http.post('/auth/send-email-code', payload)),
+  register: (payload) => request(http.post('/auth/register', payload)).then(extractAuthPayload),
+  login: (payload) => request(http.post('/auth/login', payload)).then(extractAuthPayload),
+  loginByEmailCode: (payload) =>
+    request(http.post('/auth/login-by-email-code', payload)).then(extractAuthPayload),
+  logout: () => request(http.post('/auth/logout')),
+  getMe: () => request(http.get('/me')).then(normalizeMeResponse),
+  updateMe: (payload) => request(http.patch('/me', payload)).then(normalizeMeResponse),
+
+  listExpertise: () => request(http.get('/expertise')).then(extractListPayload),
+  listSpecialists: (params) => request(http.get('/specialists', { params })).then(extractPagePayload),
+  getSpecialist: (id) => request(http.get(`/specialists/${id}`)).then(extractDataPayload),
+  listSpecialistSlots: (id, params) =>
+    request(http.get(`/specialists/${id}/slots`, { params })).then(extractListPayload),
+
+  createBooking: (payload) => request(http.post('/bookings', payload)).then(extractDataPayload),
+  listMyBookings: (params) => request(http.get('/bookings', { params })).then(extractPagePayload),
+  getBooking: (id) => request(http.get(`/bookings/${id}`)).then(extractDataPayload),
+  cancelBooking: (id, payload) => request(http.post(`/bookings/${id}/cancel`, payload)).then(extractDataPayload),
+  rescheduleBooking: (id, payload) =>
+    request(http.post(`/bookings/${id}/reschedule`, payload)).then(extractDataPayload),
+
+  listBookingRequests: (params) =>
+    request(http.get('/specialist/booking-requests', { params })).then(extractPagePayload),
+  confirmBooking: (id) => request(http.post(`/specialist/bookings/${id}/confirm`)).then(extractDataPayload),
+  rejectBooking: (id, payload) =>
+    request(http.post(`/specialist/bookings/${id}/reject`, payload)).then(extractDataPayload),
+  completeBooking: (id) =>
+    request(http.post(`/specialist/bookings/${id}/complete`)).then(extractDataPayload),
+
+  adminListBookings: (params) => request(http.get('/admin/bookings', { params })).then(extractPagePayload),
+  adminGetBooking: (id) => request(http.get(`/admin/bookings/${id}`)).then(extractDataPayload),
+  adminListSlots: (params) => request(http.get('/admin/slots', { params })).then(extractListPayload),
+  adminCreateSlot: (payload) => request(http.post('/admin/slots', payload)).then(extractDataPayload),
+  adminUpdateSlot: (id, payload) =>
+    request(http.patch(`/admin/slots/${id}`, payload)).then(extractDataPayload),
+  adminDeleteSlot: (id) => request(http.delete(`/admin/slots/${id}`)).then(extractDataPayload),
+  adminCreateSpecialist: (payload) => request(http.post('/admin/specialists', payload)).then(extractDataPayload),
+  adminUpdateSpecialist: (id, payload) =>
+    request(http.patch(`/admin/specialists/${id}`, payload)).then(extractDataPayload),
+  adminSetSpecialistStatus: (id, payload) =>
+    request(http.post(`/admin/specialists/${id}/status`, payload)).then(extractDataPayload),
+  adminCreateExpertise: (payload) => request(http.post('/admin/expertise', payload)).then(extractDataPayload),
+  adminUpdateExpertise: (id, payload) =>
+    request(http.patch(`/admin/expertise/${id}`, payload)).then(extractDataPayload),
+  adminDeleteExpertise: (id) =>
+    request(http.delete(`/admin/expertise/${id}`)).then(extractDataPayload),
+
+  quotePricing: (payload) => request(http.post('/pricing/quote', payload)).then(extractDataOrListPayload)
+}
