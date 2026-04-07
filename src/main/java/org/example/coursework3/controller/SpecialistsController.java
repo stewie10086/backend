@@ -2,10 +2,12 @@ package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.result.Result;
+import org.example.coursework3.service.SlotInfoService;
 import org.example.coursework3.service.SpecialistsInfoService;
+import org.example.coursework3.vo.SlotVo;
 import org.example.coursework3.vo.SpecialistsDetailVo;
 import org.example.coursework3.vo.SpecialistsPageVo;
-import org.example.coursework3.vo.SpecialistsSlotVo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,9 @@ import java.util.List;
 @RequestMapping
 @RequiredArgsConstructor
 public class SpecialistsController {
+
+    @Autowired
+    private SlotInfoService slotInfoService;
 
     private final SpecialistsInfoService specialistInfoService;
 
@@ -38,12 +43,13 @@ public class SpecialistsController {
     }
 
     @GetMapping("/specialists/{id}/slots")
-    public Result<List<SpecialistsSlotVo>> getSpecialistSlots(
-            @PathVariable String id,
-            @RequestParam(required = false) String date,
-            @RequestParam(required = false) String from,
-            @RequestParam(required = false) String to
-    ) {
-        return Result.success(specialistInfoService.getSpecialistSlots(id, date, from, to));
+    public Result<List<SlotVo>> getSpecialistSlots(@PathVariable("id") String specialistId,
+                                                   @RequestParam(required = false) String date,
+                                                   @RequestParam(required = false) String from,
+                                                   @RequestParam(required = false) String to){
+
+
+        List<SlotVo> slots = slotInfoService.getSpecialistSlots(specialistId,date,from,to);
+        return Result.success(slots);
     }
 }

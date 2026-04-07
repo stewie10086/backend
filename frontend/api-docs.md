@@ -255,7 +255,7 @@
 
 ---
 
-### - [ ] 2. 获取专家列表
+### - [Done] 2. 获取专家列表
 
 - **URL**: `/specialists`
 - **方法**: `GET`
@@ -290,7 +290,7 @@
 
 ---
 
-### - [ ] 3. 获取专家详情
+### - [Done] 3. 获取专家详情
 
 - **URL**: `/specialists/{id}`
 - **方法**: `GET`
@@ -316,7 +316,7 @@
 
 ---
 
-### - [ ] 4. 获取专家可预约时段
+### - [Done] 4. 获取专家可预约时段
 
 - **URL**: `/specialists/{id}/slots`
 - **方法**: `GET`
@@ -515,7 +515,7 @@
 
 ## 四、专家端工作流（Specialist workflow）
 
-### - [ ] 1. 获取预约请求列表（专家端）
+### - [Done] 1. 获取预约请求列表（专家端）
 
 - **URL**: `/specialist/booking-requests`
 - **方法**: `GET`
@@ -550,7 +550,7 @@
 
 ---
 
-### - [ ] 2. 确认预约
+### - [Done] 2. 确认预约
 
 - **URL**: `/specialist/bookings/{id}/confirm`
 - **方法**: `POST`
@@ -575,7 +575,7 @@
 
 ---
 
-### - [ ] 3. 拒绝预约
+### - [Done] 3. 拒绝预约
 
 - **URL**: `/specialist/bookings/{id}/reject`
 - **方法**: `POST`
@@ -607,7 +607,7 @@
 
 ---
 
-### - [ ] 4. 完成预约
+### - [Done] 4. 完成预约
 
 - **URL**: `/specialist/bookings/{id}/complete`
 - **方法**: `POST`

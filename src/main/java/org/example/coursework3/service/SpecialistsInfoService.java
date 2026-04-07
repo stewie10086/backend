@@ -3,6 +3,7 @@ package org.example.coursework3.service;
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.entity.Expertise;
 import org.example.coursework3.entity.Specialist;
+import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.repository.SpecialistsRepository;
 import org.example.coursework3.vo.*;
 import org.springframework.data.domain.Page;
@@ -64,37 +65,5 @@ public class SpecialistsInfoService {
         );
     }
 
-    @Transactional(readOnly = true)
-    public List<SpecialistsSlotVo> getSpecialistSlots(String specialistId, String date, String from, String to) {
-        Specialist specialist = specialistRepository.findById(specialistId).orElseThrow(() -> new RuntimeException("specialist not found: " + specialistId));
-        ZoneOffset offset = ZoneOffset.ofHours(8);
-        LocalDate localDate = (date == null || date.isBlank())
-                ? LocalDate.now(offset)
-                : LocalDate.parse(date.trim());
-        LocalTime startTime = parseTimeOrDefault(from, LocalTime.of(9, 0));
-        LocalTime endTime = parseTimeOrDefault(to, LocalTime.of(17, 0));
-        if (!endTime.isAfter(startTime)) {
-            return List.of();
-        }
-        final int slotMinutes = 30;
-        OffsetDateTime now = OffsetDateTime.now(offset);
-        List<SpecialistsSlotVo> result = new ArrayList<>();
-
-        for (LocalTime t = startTime; !t.plusMinutes(slotMinutes).isAfter(endTime); t = t.plusMinutes(slotMinutes)) {
-            OffsetDateTime start = OffsetDateTime.of(localDate, t, offset);
-            OffsetDateTime end = start.plusMinutes(slotMinutes);
-            boolean available = start.isAfter(now);
-            String slotId = "slot-" + specialist.getUserId() + "-" + localDate + "-" + String.format("%02d%02d", t.getHour(), t.getMinute());
-            result.add(new SpecialistsSlotVo(slotId, start.toString(), end.toString(), available));
-        }
-
-        return result;
-    }
-
-    private static LocalTime parseTimeOrDefault(String raw, LocalTime defaultValue) {
-        if (raw == null || raw.isBlank())
-            return defaultValue;
-        return LocalTime.parse(raw.trim());
-    }
 }
 
