@@ -65,19 +65,6 @@ public class AdminController {
     }
 
 //
-//    // 3. 设置专家状�?
-//    @PostMapping("/specialists/{id}/status")
-//    public ResponseEntity<?> setSpecialistStatus(@PathVariable String id,
-//                                                 @RequestBody Map<String, String> payload) {
-//        try {
-//            String status = payload.get("status");
-//            Specialist specialist = adminService.setSpecialistStatus(id, status);
-//            return ResponseEntity.ok(specialist);
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-//        }
-//    }
-//
 //    // 4. 删除专家
 //    @DeleteMapping("/specialists/{id}")
 //    public ResponseEntity<?> deleteSpecialist(@PathVariable String id) {
