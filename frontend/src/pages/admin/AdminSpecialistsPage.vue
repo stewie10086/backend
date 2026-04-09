@@ -38,6 +38,7 @@ const editExpertiseOpen = ref(false)
 const editExpertiseSearch = ref('')
 const editExpertiseFieldRef = ref(null)
 const editOriginalStatus = ref('Active')
+const editResultOpen = ref(false)
 const editForm = ref({
   id: '',
   name: '',
@@ -365,6 +366,15 @@ function closeEdit() {
   editBioLimitError.value = ''
 }
 
+function closeEditResult() {
+  editResultOpen.value = false
+}
+
+function closeEditResultAndEdit() {
+  closeEditResult()
+  closeEdit()
+}
+
 async function onSaveEdit() {
   error.value = ''
   success.value = ''
@@ -385,19 +395,21 @@ async function onSaveEdit() {
   updateLoading.value = true
   try {
     const price = editForm.value.price === '' ? undefined : Number(editForm.value.price)
-    await api.adminUpdateSpecialist(editForm.value.id, {
+    const updated = await api.adminUpdateSpecialist(editForm.value.id, {
       name: editForm.value.name.trim(),
       expertiseIds: normalizeExpertiseIds(editForm.value.expertiseIds),
       price: Number.isFinite(price) ? price : undefined,
       bio: editForm.value.bio.trim() || undefined
     })
+    void updated
     if (editForm.value.status !== editOriginalStatus.value) {
-      await api.adminSetSpecialistStatus(editForm.value.id, { status: editForm.value.status })
+      const statusUpdated = await api.adminSetSpecialistStatus(editForm.value.id, { status: editForm.value.status })
+      void statusUpdated
     }
 
     await loadSpecialists()
     success.value = `Specialist ${editForm.value.id} updated successfully.`
-    closeEdit()
+    editResultOpen.value = true
   } catch (e) {
     error.value = e?.message || 'Failed to update specialist'
   } finally {
@@ -920,6 +932,20 @@ watch(
           >
             {{ updateLoading ? 'Saving...' : 'Save Changes' }}
           </button>
+        </div>
+      </section>
+    </div>
+
+    <div v-if="editResultOpen" class="modal-backdrop" @click.self="closeEditResultAndEdit">
+      <section class="modal-card">
+        <div class="panel-head">
+          <h3 class="modal-title">Update Successful</h3>
+        </div>
+
+        <div class="state">Changes have been saved.</div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-primary btn-primary--fit" @click="closeEditResultAndEdit">OK</button>
         </div>
       </section>
     </div>

@@ -2,6 +2,8 @@ package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.dto.request.CreateSpecialistRequest;
+import org.example.coursework3.dto.request.EditSpecialistRequest;
+import org.example.coursework3.dto.request.UpdateSpecialistStatusRequest;
 import org.example.coursework3.entity.Role;
 import org.example.coursework3.entity.Specialist;
 import org.example.coursework3.result.Result;
@@ -32,17 +34,36 @@ public class AdminController {
         return Result.error("ERROR","请以管理员身份创建");
     }
 
-//    // 2. 更新专家信息
-//    @PatchMapping("/specialists/{id}")
-//    public ResponseEntity<?> updateSpecialist(@PathVariable String id,
-//                                              @RequestBody Map<String, Object> payload) {
-//        try {
-//            Specialist specialist = adminService.updateSpecialist(id, payload);
-//            return ResponseEntity.ok(specialist);
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-//        }
-//    }
+    // 2. 更新专家信息
+    @PatchMapping("/specialists/{id}")
+    public Result<Specialist> updateSpecialist(@RequestHeader("Authorization") String authHeader, @PathVariable String id, @RequestBody EditSpecialistRequest request) {
+        String token = authHeader.replace("Bearer ", "");
+        String userId = authService.getUserIdByToken(token);
+        Role role = authService.getRoleByUserId(userId);
+        if (role == Role.Admin) {
+            return Result.success(adminService.updateSpecialist(id, request));
+        }
+        return Result.error("ERROR","请以管理员身份修改");
+
+    }
+
+    //3. 设置专家状态
+    @PostMapping("/specialists/{id}/status")
+    public Result<Specialist> updateSpecialistStatus(@RequestHeader("Authorization") String authHeader,
+                                               @PathVariable String id,
+                                               @RequestBody UpdateSpecialistStatusRequest request){
+        String token = authHeader.replace("Bearer ", "");
+        String userId = authService.getUserIdByToken(token);
+        Role role = authService.getRoleByUserId(userId);
+        if (role != Role.Admin) {
+            return Result.error("ERROR", "请以管理员身份修改");
+        }
+        if (request == null || request.getStatus() == null) {
+            return Result.error("ERROR", "status不能为空");
+        }
+        return Result.success(adminService.updateSpecialistStatus(id, request.getStatus()));
+    }
+
 //
 //    // 3. 设置专家状�?
 //    @PostMapping("/specialists/{id}/status")

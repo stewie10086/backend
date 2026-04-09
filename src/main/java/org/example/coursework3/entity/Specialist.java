@@ -23,6 +23,10 @@ public class Specialist {
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SpecialistStatus status = SpecialistStatus.Active;
+
     @Column(nullable = false, length = 100)
     private String name;
 
@@ -30,7 +34,7 @@ public class Specialist {
     private String bio;
 
     @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal price = BigDecimal.ZERO;
+    private BigDecimal price = BigDecimal.valueOf(50);
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

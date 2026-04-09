@@ -54,7 +54,7 @@ public class SpecialistsInfoService {
 
         List<SpecialistsVo> items = specialistPage.getContent().stream().map(s -> {
             List<String> expertiseIds = s.getExpertises().stream().map(Expertise::getId).toList();
-            return new SpecialistsVo(s.getUserId(), s.getName(), expertiseIds, s.getPrice());
+            return new SpecialistsVo(s.getUserId(), s.getName(), s.getStatus(), expertiseIds, s.getPrice());
         }).toList();
 
         return new SpecialistsPageVo(

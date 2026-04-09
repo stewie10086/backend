@@ -7,5 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SpecialistsRepository extends JpaRepository<Specialist, String> {
     Page<Specialist> findDistinctByExpertises_Id(String expertiseId, Pageable pageable);
+
+    Specialist getByUserId(String userId);
 }
 
