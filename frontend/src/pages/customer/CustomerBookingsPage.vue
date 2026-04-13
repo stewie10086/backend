@@ -5,6 +5,7 @@ import { api } from '@/api/client'
 
 const status = ref('')
 const page = ref({ items: [], total: 0, page: 1, pageSize: 10 })
+const query = ref({ from: '', to: '', page: 1, pageSize: 10 })
 const loading = ref(false)
 const error = ref('')
 
@@ -28,8 +29,13 @@ async function load() {
   error.value = ''
   loading.value = true
   try {
-    const params = {}
+    const params = {
+      page: query.value.page,
+      pageSize: query.value.pageSize
+    }
     if (status.value) params.status = status.value
+    if (query.value.from) params.from = query.value.from
+    if (query.value.to) params.to = query.value.to
     page.value = await api.listMyBookings(params)
   } catch (e) {
     error.value = e?.message || 'Failed to load'
@@ -39,8 +45,31 @@ async function load() {
   }
 }
 
+function onSearch() {
+  query.value.page = 1
+  load()
+}
+
+function prevPage() {
+  if (query.value.page <= 1 || loading.value) return
+  query.value.page -= 1
+  load()
+}
+
+function nextPage() {
+  if (loading.value || query.value.page >= totalPages()) return
+  query.value.page += 1
+  load()
+}
+
+function totalPages() {
+  const total = Number(page.value.total || 0)
+  const size = Number(page.value.pageSize || query.value.pageSize || 10)
+  return Math.max(1, Math.ceil(total / size))
+}
+
 onMounted(load)
-watch(status, () => load())
+watch(status, () => onSearch())
 </script>
 
 <template>
@@ -62,6 +91,23 @@ watch(status, () => load())
           <option value="Rejected">Rejected</option>
         </select>
       </label>
+      <label class="field">
+        <span class="label">From</span>
+        <input v-model="query.from" type="date" class="input" />
+      </label>
+      <label class="field">
+        <span class="label">To</span>
+        <input v-model="query.to" type="date" class="input" />
+      </label>
+      <label class="field">
+        <span class="label">Page Size</span>
+        <select v-model.number="query.pageSize" class="input">
+          <option :value="10">10</option>
+          <option :value="20">20</option>
+          <option :value="50">50</option>
+        </select>
+      </label>
+      <button type="button" class="btn btn--ghost" :disabled="loading" @click="onSearch">Search</button>
       <button type="button" class="btn" :disabled="loading" @click="load">Refresh</button>
     </div>
 
@@ -87,6 +133,16 @@ watch(status, () => load())
         </RouterLink>
       </li>
     </ul>
+
+    <div v-if="(page.items || []).length" class="pager">
+      <button type="button" class="btn btn--ghost" :disabled="loading || query.page <= 1" @click="prevPage">
+        Prev
+      </button>
+      <span class="pager__info">Page {{ page.page }} / {{ totalPages() }} · Total {{ page.total }}</span>
+      <button type="button" class="btn btn--ghost" :disabled="loading || query.page >= totalPages()" @click="nextPage">
+        Next
+      </button>
+    </div>
   </section>
 </template>
 
@@ -137,6 +193,11 @@ watch(status, () => load())
   font-weight: 700;
   cursor: pointer;
   height: 42px;
+}
+.btn--ghost {
+  border: 1px solid #d3d8e1;
+  background: #ffffff;
+  color: #334155;
 }
 .btn:disabled {
   opacity: 0.5;
@@ -243,6 +304,16 @@ watch(status, () => load())
 .empty__title {
   font-weight: 700;
   margin-bottom: 6px;
+}
+.pager {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pager__info {
+  font-size: 13px;
+  color: #475569;
 }
 
 @media (max-width: 720px) {
