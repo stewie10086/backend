@@ -2,6 +2,7 @@ package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.dto.request.CreateBookingRequest;
+import org.example.coursework3.dto.response.BookingActionResult;
 import org.example.coursework3.dto.response.BookingPageResult;
 import org.example.coursework3.dto.response.CreateBookingResult;
 import org.example.coursework3.result.Result;
@@ -52,5 +53,12 @@ public class BookingController {
         return Result.success(bookingService.getSingleBookingInfo(id));
     }
 
+    @PostMapping("/{id}/cancel")
+    public Result<BookingActionResult> cancelBooking(@RequestHeader("Authorization") String authHeader, @PathVariable String id){
+        if (!authService.verifyAsCustomer(authHeader)) {
+            return Result.error("ERROR", "请以顾客身份查看");
+        }
+        return Result.success(bookingService.cancelBooking(id));
+    }
 
 }

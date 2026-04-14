@@ -1,13 +1,11 @@
 package org.example.coursework3.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.coursework3.dto.response.BookingActionResult;
 import org.example.coursework3.dto.response.BookingPageResult;
 import org.example.coursework3.entity.*;
 import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.repository.*;
-import org.example.coursework3.dto.response.CompleteResult;
-import org.example.coursework3.dto.response.ConfirmResult;
-import org.example.coursework3.dto.response.RejectResult;
 import org.example.coursework3.vo.BookingRequestVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -85,7 +83,7 @@ public class SpecialistBookingService {
     }
 
 
-    public ConfirmResult confirmBooking(String authHeader, String bookingId) {
+    public BookingActionResult confirmBooking(String authHeader, String bookingId) {
         String token = authHeader.replace("Bearer ","");
         String specialistId = authService.getUserIdByToken(token);
         Booking booking = bookingRepository.findById(bookingId)
@@ -111,13 +109,11 @@ public class SpecialistBookingService {
         }
         slot.setAvailable(Boolean.FALSE);
         slotRepository.save(slot);
-        ConfirmResult result = new ConfirmResult();
-        result.setId(bookingId);
-        return result;
+        return new BookingActionResult(bookingId, BookingStatus.Confirmed);
     }
 
     @Transactional
-    public RejectResult rejectBooking(String authHeader, String bookingId, String reason) {
+    public BookingActionResult rejectBooking(String authHeader, String bookingId, String reason) {
         String token = authHeader.replace("Bearer ","");
         String specialistId = authService.getUserIdByToken(token);
         Booking booking = bookingRepository.findById(bookingId)
@@ -145,12 +141,10 @@ public class SpecialistBookingService {
         } catch (Exception e) {
             log.warn("Failed to send rejection email notification: {}", e.getMessage());
         }
-        RejectResult result = new RejectResult();
-        result.setId(bookingId);
-        return result;
+        return new BookingActionResult(bookingId, BookingStatus.Rejected);
     }
 
-    public CompleteResult completeBooking(String authHeader, String bookingId) {
+    public BookingActionResult completeBooking(String authHeader, String bookingId) {
         String token = authHeader.replace("Bearer ","");
         String specialistId = authService.getUserIdByToken(token);
         Booking booking = bookingRepository.findById(bookingId)
@@ -164,9 +158,7 @@ public class SpecialistBookingService {
         }
         booking.setStatus(BookingStatus.Completed);
         bookingRepository.save(booking);
-        CompleteResult result = new CompleteResult();
-        result.setId(bookingId);
-        return result;
+        return new BookingActionResult(bookingId, BookingStatus.Completed);
     }
 
     @Transactional

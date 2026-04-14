@@ -2,6 +2,7 @@ package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.dto.request.CreateBookingRequest;
+import org.example.coursework3.dto.response.BookingActionResult;
 import org.example.coursework3.dto.response.BookingPageResult;
 import org.example.coursework3.dto.response.CreateBookingResult;
 import org.example.coursework3.entity.Booking;
@@ -123,6 +124,11 @@ public class CustomerBookingService {
         User specialist = userRepository.findById(booking.getSpecialistId());
         String specialistName = specialist != null ? specialist.getName() : booking.getSpecialistId();
         return SingleBookingVo.fromBooking(booking, slot, specialistName);
+    }
+
+    public BookingActionResult cancelBooking(String id) {
+
+        return new BookingActionResult(id, BookingStatus.Cancelled);
     }
 
 
