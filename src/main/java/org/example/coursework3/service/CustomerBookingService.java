@@ -153,4 +153,37 @@ public class CustomerBookingService {
         return new BookingActionResult(id, BookingStatus.Cancelled);
     }
 
+
+//    @Transactional
+//    public void cancelBooking(String userId, String bookingId) {
+//        Booking booking = bookingRepository.findById(bookingId)
+//                .orElseThrow(() -> new MsgException("未找到该预约记录"));
+//
+//        if (!booking.getCustomerId().equals(userId)) {
+//            throw new MsgException("您无权取消此预约");
+//        }
+//
+//        if (booking.getStatus() != BookingStatus.Confirmed && booking.getStatus() != BookingStatus.Pending) {
+//            throw new MsgException("当前预约状态无法执行取消操作");
+//        }
+//
+//        booking.setStatus(BookingStatus.Cancelled);
+//        bookingRepository.save(booking);
+//
+//
+//        Slot slot = slotRepository.findById(booking.getSlotId())
+//                .orElseThrow(() -> new MsgException("关联的时段不存在"));
+//        slot.setAvailable(true);
+//        slotRepository.save(slot);
+//
+//        try {
+//            User specialist = userRepository.findById(booking.getSpecialistId());
+//            if (specialist != null && specialist.getEmail() != null) {
+//                String timeRange = slot.getStartTime().toString() + " — " + slot.getEndTime().toString();
+//                aliyunMailService.sendCancellationNoticeToSpecialist(specialist.getEmail(), timeRange);
+//            }
+//        } catch (Exception e) {
+//            System.err.println("发送专家取消通知失败: " + e.getMessage());
+//        }
+//    }
 }
