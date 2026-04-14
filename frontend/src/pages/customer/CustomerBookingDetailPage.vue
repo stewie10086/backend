@@ -42,6 +42,8 @@ async function onCancel() {
     booking.value = await api.cancelBooking(props.id, {
       reason: cancelReason.value.trim() || undefined
     })
+    window.alert('Booking cancelled successfully.')
+    await router.push({ name: 'customer.bookings' })
   } catch (e) {
     actionError.value = e?.message || 'Failed to cancel'
   } finally {
