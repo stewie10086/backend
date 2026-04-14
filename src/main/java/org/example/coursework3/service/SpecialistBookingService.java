@@ -104,6 +104,7 @@ public class SpecialistBookingService {
         return result;
     }
 
+    @Transactional
     public RejectResult rejectBooking(String authHeader, String bookingId, String reason) {
         String token = authHeader.replace("Bearer ","");
         String specialistId = authService.getUserIdByToken(token);
@@ -119,7 +120,9 @@ public class SpecialistBookingService {
         booking.setStatus(BookingStatus.Rejected);
         booking.setNote(reason);
         bookingRepository.save(booking);
-
+        Slot slot = slotRepository.getById(booking.getSlotId());
+        slot.setAvailable(true);
+        slotRepository.save(slot);
         RejectResult result = new RejectResult();
         result.setId(bookingId);
         return result;

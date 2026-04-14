@@ -1,8 +1,12 @@
 package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.coursework3.entity.Booking;
 import org.example.coursework3.entity.Slot;
+import org.example.coursework3.entity.User;
+import org.example.coursework3.repository.BookingRepository;
 import org.example.coursework3.repository.SlotRepository;
+import org.example.coursework3.repository.UserRepository;
 import org.example.coursework3.vo.SlotVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,10 @@ import java.util.List;
 public class SlotInfoService {
     @Autowired
     private SlotRepository slotRepository;
+    @Autowired
+    private BookingRepository bookingRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public List<SlotVo> getSpecialistSlots(String specialistId, String date, String from, String to) {
         List<Slot> allSlots = slotRepository.findBySpecialistId(specialistId);
@@ -55,7 +63,15 @@ public class SlotInfoService {
                     .toList();
         }
         return allSlots.stream()
-                .map(SlotVo::fromSlot)
+                .map(slot -> {
+                    Booking booking = bookingRepository.findTopBySlotIdOrderByCreatedAtDesc(slot.getId()).orElse(null);
+                    String customerName = null;
+                    if (booking != null) {
+                        User customer = userRepository.findById(booking.getCustomerId());
+                        customerName = customer != null ? customer.getName() : null;
+                    }
+                    return SlotVo.fromSlot(slot, booking, customerName);
+                })
                 .toList();
     }
 
