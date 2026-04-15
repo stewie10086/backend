@@ -20,11 +20,10 @@ import java.util.List;
 @Service
 public class AutoStatusUpdateService {
 
-    private static final long PENDING_EXPIRY_HOURS = 24;
-    private static final long CANCEL_BEFORE_START_MINUTES = 30;
+    private static final long CANCEL_BEFORE_START_MINUTES = 10;
     private static final long COMPLETE_AFTER_END_HOURS = 2;
 
-    private static final ZoneId APP_ZONE = ZoneId.of("Asia/Shanghai"); // 或 Asia/Shanghai
+    private static final ZoneId APP_ZONE = ZoneId.of("Asia/Shanghai");
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -32,34 +31,24 @@ public class AutoStatusUpdateService {
     @Autowired
     private SlotRepository slotRepository;
 
+    //5分钟一次检查，临场10分钟取消
     @Scheduled(fixedRate = 300000)
     @Transactional
-    public void autoCancelPendingBookings() {
+    public void cancelUnconfirmedBeforeStart() {
         LocalDateTime now = LocalDateTime.now(APP_ZONE);
-        LocalDateTime threshold = now.minusHours(PENDING_EXPIRY_HOURS);
 
-        List<Booking> allPending = bookingRepository
-                .findByStatusAndCreatedAtBefore(BookingStatus.Pending, threshold);
+        List<Booking> pending = bookingRepository
+                .findByStatus(BookingStatus.Pending);
 
-        List<Booking> toCancel = new ArrayList<>();
-
-        for (Booking booking : allPending) {
+        for (Booking booking : pending) {
             Slot slot = slotRepository.findById(booking.getSlotId()).orElse(null);
-            if (slot == null) {
-                log.warn("Slot not found for booking id={}", booking.getId());
-                continue;
-            }
+            if (slot == null) continue;
 
             if (slot.getStartTime().isBefore(now.plusMinutes(CANCEL_BEFORE_START_MINUTES))) {
                 booking.setStatus(BookingStatus.Cancelled);
-                toCancel.add(booking);
+                bookingRepository.save(booking);
                 log.info("Auto-cancelled booking id={}", booking.getId());
             }
-        }
-
-        if (!toCancel.isEmpty()) {
-            bookingRepository.saveAll(toCancel);
-            log.info("Total auto-cancelled bookings: {}", toCancel.size());
         }
     }
 
