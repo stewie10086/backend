@@ -431,5 +431,23 @@ public class AdminService {
         return BookingPageResult.of(pageItems, total, safePage, safePageSize);
     }
 
+    @Transactional
+    public AdminSlotVo getSingleSlotInfo(String id) {
+        Slot slot = slotRepository.getById(id);
+        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+        AdminSlotVo vo = new AdminSlotVo();
+        vo.setId(slot.getId());
+        vo.setSpecialistId(slot.getSpecialistId());
+        vo.setDate(slot.getStartTime().toLocalDate().toString());
+        vo.setStart(slot.getStartTime().toLocalTime().format(timeFmt));
+        vo.setEnd(slot.getEndTime().toLocalTime().format(timeFmt));
+        vo.setAvailable(slot.getAvailable());
+        vo.setAmount(slot.getAmount());
+        vo.setCurrency(slot.getCurrency());
+        vo.setDuration(slot.getDuration());
+        vo.setType(slot.getType());
+        vo.setDetail(slot.getDetail());
+        return vo;
 
+    }
 }
