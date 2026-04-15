@@ -153,5 +153,35 @@ public class CustomerBookingService {
         return new BookingActionResult(id, BookingStatus.Cancelled);
     }
 
+    @Transactional
+    public void rescheduleBooking(String bookingId, String newSlotId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new MsgException("预约不存在"));
+
+        if (booking.getStatus() == BookingStatus.Cancelled || booking.getStatus() == BookingStatus.Completed) {
+            throw new MsgException("该预约无法改期");
+        }
+
+        Slot newSlot = slotRepository.findById(newSlotId)
+                .orElseThrow(() -> new MsgException("新时段不存在"));
+        if (!newSlot.getAvailable()) {
+            throw new MsgException("新时段不可用");
+        }
+        if (!newSlot.getSpecialistId().equals(booking.getSpecialistId())) {
+            throw new MsgException("新时段与原专家不匹配");
+        }
+
+        Slot oldSlot = slotRepository.findById(booking.getSlotId()).orElse(null);
+        if (oldSlot != null) {
+            oldSlot.setAvailable(true);
+            slotRepository.save(oldSlot);
+        }
+        booking.setSlotId(newSlotId);
+        booking.setStatus(BookingStatus.Rescheduled);
+        bookingRepository.save(booking);
+        newSlot.setAvailable(false);
+        slotRepository.save(newSlot);
+    }
+
 
 }
