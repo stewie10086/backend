@@ -71,7 +71,6 @@ public class SpecialistBookingService {
             voList = bookingPage.getContent().stream()
                     .map(booking ->{
                         User customer = userRepository.findById(booking.getCustomerId());
-                        System.out.println(customer);
                         String customerName = customer.getName();
                         Slot slot = slotRepository.findById(booking.getSlotId()).orElse(null);
                         return BookingRequestVo.fromBooking(booking,customerName, slot);
