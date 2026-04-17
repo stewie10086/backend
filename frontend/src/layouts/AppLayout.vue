@@ -287,8 +287,8 @@ function onLogout() {
 }
 
 .logout-btn--customer {
-  background: #d9533c;
-  border-color: #d9533c;
+  background: #a94442;
+  border-color: #a94442;
 }
 
 .logout-btn--team {

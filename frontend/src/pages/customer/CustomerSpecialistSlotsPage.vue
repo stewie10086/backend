@@ -519,17 +519,17 @@ defineExpose({
 }
 
 .btn-submit {
-  margin-top: 6px;
-  width: 100%;
-  max-width: 260px;
-  height: 44px;
-  border: 1px solid #D9533C;
+  margin-top: 16px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: 0;
-  background: #D9533C;
+  border: 1px solid #a94442;
+  background: #a94442;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .btn-submit:hover:not(:disabled) {

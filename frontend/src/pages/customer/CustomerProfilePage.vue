@@ -567,14 +567,16 @@ onBeforeUnmount(() => {
 }
 
 .btn {
-  padding: 0 18px;
-  height: 44px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: 0;
-  border: 1px solid #d9533c;
-  background: #d9533c;
+  border: 1px solid #a94442;
+  background: #a94442;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .btn:hover:not(:disabled) {

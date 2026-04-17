@@ -328,14 +328,16 @@ function onReasonBlur() {
   color: #111827;
 }
 .btn {
-  height: 44px;
-  padding: 0 16px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: 0;
-  border: 1px solid #D9533C;
-  background: #D9533C;
+  border: 1px solid #a94442;
+  background: #a94442;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 .btn--danger {
   border-color: #D9533C;

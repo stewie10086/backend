@@ -327,15 +327,16 @@ select.input {
   cursor: pointer;
 }
 .btn {
-  padding: 0 16px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: 0;
-  border: 1px solid #D9533C;
-  background: #D9533C;
+  border: 1px solid #a94442;
+  background: #a94442;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  height: 44px;
-  transition: opacity 0.18s ease;
+  white-space: nowrap;
 }
 
 .btn:hover:not(:disabled) {
@@ -454,22 +455,16 @@ select.input {
   font-family: ui-monospace, monospace;
 }
 .link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  width: 170px;
   height: 40px;
-  padding: 0 12px;
+  padding: 0 14px;
   border-radius: 0;
-  border: 1px solid #D9533C;
-  background: #D9533C;
+  border: 1px solid #a94442;
+  background: #a94442;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: opacity 0.18s ease;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .link:hover {

@@ -159,17 +159,16 @@ watch(
 }
 
 .btn-book {
-  width: 100%;
-  margin-top: 20px;
-  height: 44px;
-  padding: 0 18px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: 0;
-  border: 1px solid #D9533C;
-  background: #D9533C;
-  color: #fff;
-  font-size: 14px;
+  border: 1px solid #a94442;
+  background: #a94442;
+  color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 .btn-book:hover {
   opacity: 0.92;

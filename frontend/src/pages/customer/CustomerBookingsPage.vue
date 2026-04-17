@@ -239,14 +239,16 @@ watch(
   color: #111827;
 }
 .btn {
-  padding: 0 16px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: 0;
-  border: 1px solid #D9533C;
-  background: #D9533C;
+  border: 1px solid #a94442;
+  background: #a94442;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  height: 44px;
+  white-space: nowrap;
 }
 .btn--ghost {
   border: 1px solid #202124;
@@ -324,19 +326,16 @@ watch(
   font-size: 12px;
 }
 .link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100px;
   height: 40px;
-  padding: 0 12px;
+  padding: 0 14px;
   border-radius: 0;
-  border: 1px solid #D9533C;
-  background: #D9533C;
+  border: 1px solid #a94442;
+  background: #a94442;
   color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
-  text-decoration: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 .banner {
   margin-top: 14px;
