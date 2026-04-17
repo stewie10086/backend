@@ -50,7 +50,7 @@ function formatSession(slot) {
   const duration = Number(slot?.duration ?? 0)
   const safeDuration = Number.isNaN(duration) || duration <= 0 ? '--' : `${duration} min`
   const type = String(slot?.type ?? 'online').trim() || 'online'
-  return `${safeDuration} 路 ${type}`
+  return `${safeDuration} / ${type}`
 }
 
 function formatDetail(slot) {
@@ -107,7 +107,7 @@ const todayPreviewText = computed(() => {
   if (previewLoading.value) return 'Loading today availability...'
   if (previewError.value) return 'Failed to load today availability'
   if (!todayPreviewSlots.value.length) return 'Today: No available slots'
-  return `Today: ${todayPreviewSlots.value.map((sl) => formatSlotRange(sl)).join(' 路 ')}`
+  return `Today: ${todayPreviewSlots.value.map((sl) => formatSlotRange(sl)).join(' / ')}`
 })
 
 async function loadSlots() {
@@ -247,7 +247,7 @@ defineExpose({
               />
               <div class="slot-main">
                 <span class="slot-time">{{ formatSlotRange(sl) }}</span>
-                <span class="slot-meta">{{ formatMoney(sl) }} 路 {{ formatSession(sl) }}</span>
+                <span class="slot-meta">{{ formatMoney(sl) }} / {{ formatSession(sl) }}</span>
                 <span class="slot-meta slot-meta--detail" :title="formatDetail(sl)">Detail: {{ formatDetail(sl) }}</span>
               </div>
               <span v-if="sl.available === false" class="muted small">(Full)</span>
