@@ -7,7 +7,7 @@ const STORAGE_USER_KEY = 'booking.auth.user'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     initialized: false,
-    token: localStorage.getItem(STORAGE_TOKEN_KEY) || '',
+    token: sessionStorage.getItem(STORAGE_TOKEN_KEY) || '',
     user: null
   }),
   getters: {
@@ -15,7 +15,7 @@ export const useAuthStore = defineStore('auth', {
   },
   actions: {
     loadUserFromStorage() {
-      const raw = localStorage.getItem(STORAGE_USER_KEY)
+      const raw = sessionStorage.getItem(STORAGE_USER_KEY)
       if (!raw) return null
       try {
         return JSON.parse(raw)
@@ -25,13 +25,13 @@ export const useAuthStore = defineStore('auth', {
     },
     setUser(user) {
       this.user = user ?? null
-      if (this.user) localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(this.user))
-      else localStorage.removeItem(STORAGE_USER_KEY)
+      if (this.user) sessionStorage.setItem(STORAGE_USER_KEY, JSON.stringify(this.user))
+      else sessionStorage.removeItem(STORAGE_USER_KEY)
     },
     setToken(token) {
       this.token = token || ''
-      if (this.token) localStorage.setItem(STORAGE_TOKEN_KEY, this.token)
-      else localStorage.removeItem(STORAGE_TOKEN_KEY)
+      if (this.token) sessionStorage.setItem(STORAGE_TOKEN_KEY, this.token)
+      else sessionStorage.removeItem(STORAGE_TOKEN_KEY)
     },
     async bootstrap() {
       this.initialized = true
