@@ -49,18 +49,36 @@ public class AliyunMailService {
         client.singleSendMail(request);
     }
 
+//    @Async
+//    public void sendBookingStatusNotification(String name, String toAddress, String status, String note) throws Exception {
+//        String subject = "Your Booking Status";
+//        String content = status.equalsIgnoreCase("Confirmed") ? "Confirmed" : "Rejected";
+//        String bodyHtml = "<h3>Booking Handling Info</h3>" +
+//                "<p>Your Booking Status：<strong>" + content + "</strong></p>";
+//
+//        if (note != null && !note.isEmpty()) {
+//            bodyHtml += "<p>Note：" + note + "</p>";
+//        }
+//
+//        bodyHtml += "<p>Your booking status has been updated by: <strong>" + name +"</strong>. Please log in to the system to view details.</p>";
+//
+//        SingleSendMailRequest request = new SingleSendMailRequest()
+//                .setAccountName(fromAddress)
+//                .setAddressType(1)
+//                .setReplyToAddress(true)
+//                .setToAddress(toAddress)
+//                .setSubject(subject)
+//                .setHtmlBody(bodyHtml);
+//
+//        client.singleSendMail(request);
+//    }
+
     @Async
-    public void sendBookingStatusNotification(String name, String toAddress, String status, String note) throws Exception {
-        String subject = "Your Booking Status";
-        String content = status.equalsIgnoreCase("Confirmed") ? "Confirmed" : "Rejected";
-        String bodyHtml = "<h3>Booking Handling Info</h3>" +
-                "<p>Your Booking Status：<strong>" + content + "</strong></p>";
-
-        if (note != null && !note.isEmpty()) {
-            bodyHtml += "<p>Note：" + note + "</p>";
-        }
-
-        bodyHtml += "<p>Your booking status has been updated by: <strong>" + name +"</strong>. Please log in to the system to view details.</p>";
+    public void sendCancellationNoticeToSpecialist(String toAddress, String slotInfo) throws Exception {
+        String subject = "Booking Cancellation and Appointment Slot Release Notice";
+        String bodyHtml = "<h3>Booking Cancellation Reminder</h3>" +
+                "<p>Dear specialist, the client has canceled the originally scheduled reservation: <strong>" + slotInfo + "</strong></p>" +
+                "<p><strong>The slot has now been automatically released</strong>, other customers can make a new booking.</p>";
 
         SingleSendMailRequest request = new SingleSendMailRequest()
                 .setAccountName(fromAddress)
@@ -74,12 +92,18 @@ public class AliyunMailService {
     }
 
     @Async
-    public void sendCancellationNoticeToSpecialist(String toAddress, String slotInfo) throws Exception {
-        String subject = "Booking Cancellation and Appointment Slot Release Notice";
-        String bodyHtml = "<h3>Booking Cancellation Reminder</h3>" +
-                "<p>Dear specialist, the client has canceled the originally scheduled reservation: <strong>" + slotInfo + "</strong></p>" +
-                "<p><strong>The slot has now been automatically released</strong>, other customers can make a new booking.</p>";
+    public void sendGenericStatusNotification(String toAddress, String role, String status, String slotInfo, String note) throws Exception {
+        String subject = "Booking Status Update: " + status;
+        String bodyHtml = "<h3>Booking Status Update</h3>" +
+                "<p>Dear " + role + ",</p>" +
+                "<p>The status of the booking for the time slot <strong>" + slotInfo
+                + "</strong> has been updated to: <strong style='color:blue'>" + status
+                + "</strong>.</p>";
+        if (note != null && !note.isEmpty()) {
+            bodyHtml += "<p>Note/Reason: " + note + "</p>";
+        }
 
+        bodyHtml += "<p>Please log in to the system to view the latest details.</p>";
         SingleSendMailRequest request = new SingleSendMailRequest()
                 .setAccountName(fromAddress)
                 .setAddressType(1)
