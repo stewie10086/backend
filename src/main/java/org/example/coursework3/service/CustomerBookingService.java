@@ -145,16 +145,16 @@ public class CustomerBookingService {
         Slot slot = slotRepository.getSlotById(booking.getSlotId());
         slot.setAvailable(true);
 
-        try {
-            User specialist = userRepository.findById(booking.getSpecialistId());
-            if (specialist != null && specialist.getEmail() != null) {
-                String timeRange = slot.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " — " +
-                        slot.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                aliyunMailService.sendCancellationNoticeToSpecialist(specialist.getEmail(), timeRange);
-            }
-        } catch (Exception e) {
-            log.warn("发送专家取消通知失败: {}", e.getMessage());
-        }
+//        try {
+//            User specialist = userRepository.findById(booking.getSpecialistId());
+//            if (specialist != null && specialist.getEmail() != null) {
+//                String timeRange = slot.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " — " +
+//                        slot.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+//                aliyunMailService.sendCancellationNoticeToSpecialist(specialist.getEmail(), timeRange);
+//            }
+//        } catch (Exception e) {
+//            log.warn("发送专家取消通知失败: {}", e.getMessage());
+//        }
         return new BookingActionResult(id, BookingStatus.Cancelled);
     }
 
@@ -191,7 +191,27 @@ public class CustomerBookingService {
         bookingRepository.save(booking);
         newSlot.setAvailable(false);
         slotRepository.save(newSlot);
+
+
+
+        try {
+            User customer = userRepository.findById(booking.getCustomerId());
+            User specialistUser = userRepository.findById(booking.getSpecialistId());
+
+            String range = newSlot.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + " to " +
+                    newSlot.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+
+            if (customer != null && customer.getEmail() != null) {
+                aliyunMailService.sendGenericStatusNotification(customer.getEmail(), "Customer", "Rescheduled", range, "Your booking has been rescheduled to a new time.");
+            }
+            if (specialistUser != null && specialistUser.getEmail() != null) {
+                aliyunMailService.sendGenericStatusNotification(specialistUser.getEmail(), "Specialist", "Rescheduled", range, "Customer rescheduled the booking to a new time.");
+            }
+        } catch (Exception e) {
+            log.warn("发送改期通知邮件失败: {}", e.getMessage());
+        }
     }
+
 
 
 }

@@ -99,15 +99,15 @@ public class SpecialistBookingService {
         booking.setStatus(BookingStatus.Confirmed);
         bookingRepository.save(booking);
         //发送邮件逻辑
-        try {
-            User customer = userRepository.findById(booking.getCustomerId());
-            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
-            if (customer != null && customer.getEmail() != null) {
-                aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Confirmed", null);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to send confirmation email notification: {}", e.getMessage());
-        }
+//        try {
+//            User customer = userRepository.findById(booking.getCustomerId());
+//            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
+//            if (customer != null && customer.getEmail() != null) {
+//                aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Confirmed", null);
+//            }
+//        } catch (Exception e) {
+//            log.warn("Failed to send confirmation email notification: {}", e.getMessage());
+//        }
         slot.setAvailable(Boolean.FALSE);
         slotRepository.save(slot);
         return new BookingActionResult(bookingId, BookingStatus.Confirmed);
@@ -132,16 +132,16 @@ public class SpecialistBookingService {
         Slot slot = slotRepository.getById(booking.getSlotId());
         slot.setAvailable(true);
         slotRepository.save(slot);
-        //发送邮件
-        try {
-            User customer = userRepository.findById(booking.getCustomerId());
-            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
-            if (customer != null && customer.getEmail() != null) {
-                aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Rejected", reason);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to send rejection email notification: {}", e.getMessage());
-        }
+//        //发送邮件
+//        try {
+//            User customer = userRepository.findById(booking.getCustomerId());
+//            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
+//            if (customer != null && customer.getEmail() != null) {
+//                aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Rejected", reason);
+//            }
+//        } catch (Exception e) {
+//            log.warn("Failed to send rejection email notification: {}", e.getMessage());
+//        }
         return new BookingActionResult(bookingId, BookingStatus.Rejected);
     }
 
@@ -176,7 +176,7 @@ public class SpecialistBookingService {
     }
 
     @Transactional
-    public void createBookingHistory(Booking booking) {
+    public void createBookingHistory(Booking booking) throws Exception {
         // 1. 检查这条记录是否已经存在
         boolean exists = bookingHistoryRepository
                 .existsByBookingIdAndStatus(
@@ -205,8 +205,43 @@ public class SpecialistBookingService {
 
         // 3. 只保存这一条
         bookingHistoryRepository.save(history);
+
+
+        //发送邮件逻辑
+        try {
+            User customer = userRepository.findById(booking.getCustomerId());
+            User specialist = userRepository.findById(booking.getSpecialistId());
+            Slot slot = slotRepository.getSlotById(booking.getSlotId());
+
+            String range = "";
+            if (slot != null){
+                range = slot.getStartTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + " - " +
+                        slot.getEndTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            }
+            // 发送给Customer
+            if (customer != null && customer.getEmail()!= null){
+                aliyunMailService.sendGenericStatusNotification(customer.getEmail(), "Customer", booking.getStatus().name(),range, booking.getNote());
+
+            }
+            // 发送给Specialist
+            if (specialist != null && specialist.getEmail()!= null){
+                if (booking.getStatus() == BookingStatus.Cancelled){
+                    aliyunMailService.sendCancellationNoticeToSpecialist(specialist.getEmail(), range);
+                }
+                else aliyunMailService.sendGenericStatusNotification(specialist.getEmail(), "Specialist", booking.getStatus().name(), range, booking.getNote());
+
+            }
+        } catch (Exception e) {
+            log.error("邮件通知发送失败: {}", e.getMessage());
+        }
     }
-}
+
+    }
+
+
+
+
+
 
 
 
