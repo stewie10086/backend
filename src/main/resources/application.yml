@@ -25,3 +25,12 @@ aliyun:
 
     region: cn-hangzhou
     from-address: service@mail.fulingyi.xyz
+
+alipay:
+  gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  app-id: ${ALIPAY_APP_ID}
+  private-key: ${ALIPAY_PRIVATE_KEY}
+  public-key: ${ALIPAY_PUBLIC_KEY}
+  notify-url: ${ALIPAY_NOTIFY_URL}
+
+
