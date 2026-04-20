@@ -3,7 +3,7 @@ spring:
   datasource:
     url:  jdbc:mysql://localhost:3306/booking_system?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: 123456
+    password: YMX20060306
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # Redis
@@ -22,7 +22,14 @@ spring:
 
 aliyun:
   mail:
-    access-key-id: ${ALICLOUD_ACCESS_KEY_ID}
-    access-key-secret: ${ALICLOUD_ACCESS_KEY_SECRET}
+    access-key-id: ${ALICLOUD_ACCESS_KEY_ID:}
+    access-key-secret: ${ALICLOUD_ACCESS_KEY_SECRET:}
     region: cn-hangzhou
     from-address: service@mail.fulingyi.xyz
+
+alipay:
+  gateway-url: ${ALIPAY_GATEWAY_URL:https://openapi-sandbox.dl.alipaydev.com/gateway.do}
+  app-id: ${ALIPAY_APP_ID:9021000162690335}
+  private-key: MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCIu7ANHMfckiP9YvRFl0U3qoB8yu9yDOCDhZxH4Jikd3/k5P+cZ287k72S96RY68IuiOTId3uqPV9UVImcQ664dXXmoqipZ980WKJZRO07QiHHuW0dMHXHOfL80IE6kDjH7m6AHVodlVyuFISiENTeFNwm2IXC/tDajq32OMnIi9xrxNrUEmIPSstQxHbllh8hdpUzw7F78yl4HQBGXlwdq19zOVQFil3nXSNfgxG4OGI8kcIlzntpN5Au6AWKhORzZkscz/9hvBTPkVnD5N96KxnJZkRxpOdSwmvQwqdZ1uIHCWhpTHDXHUzVByVK4wdFOq0IQTh5e740ObObWQbBAgMBAAECggEAJ78/lyA1rRXCZocccRpfIaZrwVsQrfu2TCVL380XMkAWqogzEdkziYMSCaX5XWvzP6nFr8yj40IB8za75fP61141zrycANrUFJhrYT3bJG29+hwZ7vFGW4qp6voFhuujxeK2toFRz+W6UlReleoEpyYzNQueHqgKOG5ffYLWjXhE4PR29axNYEldGsVzYUu51hlVlmDMQvJ2WqNfDCHFq8qiLphUqTpqsmKR+zU4tT6qYuWqxifONCowctDKbBQDpq+9vYIa4KTYAGJdIooqbRvvPgo06za5ZLHSpEnIVzvznfyH+LmFX0lzGIsC8TYrStYRdrwsddy+o3NlzH9AAQKBgQDW9vyhy80VxtghUq+IdXZrEOFLln7m/GiYi/ryJuRQsA8uIiROxIoLqfako/fFLrx4xIjFNIxukLPkxDEO5uKIuiYpG/QRohxwA143/uHBnBSFCi4WTEHKhXogr2pZp1UdVCOhpwsDxp1v7iPhjWi1cNRfmJGZRLw7tkbYEGhlAQKBgQCi1aLF9tM9JPMAXiBZ8TskJniCJnYqZ+iBIcC3obduKQHLeFAkgJZFySzDGy1KYXmo0B4ycKAYYClqEdXJP6p6br9Cp0XI+SB9BO2t6WkfP3c7q1pFpI1Wuc7ygfgYXPj5tgbLDi9Wc5dArSGmIJsIkVdQxX1052lvYY3zgN/hwQKBgCYo/jvyo9uDywZPWV3ODFGBU51JgAmdMSwzXT7zbIBuYKN96Bgbh63+ZAxiFy/n1glSSj1H0M4n3ed0dIkCr6A5+2A82BzxPD8eOfGSy5zFCld7sSbALsW24DFBMo3ryI5GS3T85FWtQnGGQtRdeAMNnoXB3cbpjsjC2NyuPPoBAoGALKiW6eBV8vENTE6EZOaKJ9H9PwS5Z8vzsmbFaheKLUZF3b3zjO9PR3hzNFdhxoKRUUEy5vaIkebdtN+LWJSDduyku+0QcJwS0vblEMtxL0bCtrS6H1uP//cZ0NzgZB4rkqDfoBUV2on9M5nIHr3WhzUFU3u2erd07T0+J0hzHoECgYBI4sHv0+bR02L4HhJZJszPED3ZrUxCjh20uQNiI0iUxrHj1cWYRh1gjaG4gwVT1J2OQWFhACRn3m+M/WcP1sj5U67eqJ47hEY21xMTIujzhrv3cUnhxgsPbiiDGAfY7IDB3AnTgkpqmlwS2WNye8iM1I2y9ngyvqCPt2YWTauj9g==
+  public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhrEfw6+BBk8MSjOs8aPzPyD+YCk7BVjeHy6Iu5GtUDV8kXR58O3cLnf1atW+JMir+hh3SaIDSLdFGhxVWffTzcNIEQzHHfUGpLnbc3do/wUoVs/IKMg9dWGgB/6YcTfIguxAhg8AeqbCHk4XLmM1dFpg6LOhSIW4ZHCZ2nqr6bFMFsjtscCQ1Cl6FBTJWRjpMVuGuCSTD5ovTVF4APKx0boPJ8SyoLA4fcH+WA08MVEMMEYPCAm/JO1uD3d9sL+iPq3VQ2J9QNA73YF4t7+3LbmBPX4NRQz2No5PwxPUuVjaP07IGdOU/X1J0ETOH6WAEx5MKgp4CHaG1myjyiqiwwIDAQAB
+  notify-url: ${ALIPAY_NOTIFY_URL:http://localhost:8080/bookings/alipay/notify}

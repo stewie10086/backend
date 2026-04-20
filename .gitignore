@@ -25,5 +25,6 @@ logs/
 Thumbs.db
 
 ### Local Config ###
-# 如果你有存放敏感信息的本地配置文件，可以取消下面一行的注释
-# application-local.properties
+# 本地敏感配置（不要提交到 git）
+application-local.properties
+application-local.yml
