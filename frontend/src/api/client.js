@@ -238,6 +238,10 @@ export const api = {
       request(http.post(`/admin/specialists/${id}/status`, payload)).then(extractDataPayload),
   adminDeleteSpecialist: (id) =>
       request(http.delete(`/admin/specialists/${id}`)).then(extractDataPayload),
+  adminBatchSetSpecialistStatus: (payload) =>
+      request(http.post('/admin/specialists/batch-status', payload)).then(extractDataPayload),
+  adminExportSpecialists: () =>
+      http.get('/admin/specialists/export', { responseType: 'blob' }),
   adminCreateExpertise: (payload) => request(http.post('/admin/expertise', payload)).then(extractDataPayload),
   adminUpdateExpertise: (id, payload) =>
       request(http.patch(`/admin/expertise/${id}`, payload)).then(extractDataPayload),

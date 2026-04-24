@@ -9,6 +9,9 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 const searchQuery = ref('')
+const selectedIds = ref([])
+const batchLoading = ref(false)
+const exportLoading = ref(false)
 
 const form = ref({
   name: '',
@@ -89,6 +92,10 @@ const totalSpecialists = computed(() => Math.max(Number(page.value?.total) || 0,
 const specialistCountLabel = computed(() => {
   const count = totalSpecialists.value
   return `${count} specialist${count === 1 ? '' : 's'}`
+})
+const selectedCountLabel = computed(() => {
+  const count = selectedIds.value.length
+  return `${count} selected`
 })
 const showNameHelper = computed(() => {
   return nameFocused.value || !!form.value.name.length || !!nameLimitError.value
@@ -284,12 +291,83 @@ async function loadSpecialists() {
   loading.value = true
   try {
     page.value = await api.listSpecialists({ pageSize: 100 })
+    const currentIds = new Set((page.value?.items || []).map((item) => String(item?.id || '')))
+    selectedIds.value = selectedIds.value.filter((id) => currentIds.has(id))
   } catch (e) {
     error.value = e?.message || 'Failed to load specialists'
     showAlertModal({ type: 'error', message: error.value })
     page.value = { items: [], total: 0 }
+    selectedIds.value = []
   } finally {
     loading.value = false
+  }
+}
+
+function toggleSelectAll(event) {
+  const checked = !!event?.target?.checked
+  if (!checked) {
+    selectedIds.value = []
+    return
+  }
+  selectedIds.value = filteredSpecialists.value.map((row) => String(row?.id || '')).filter(Boolean)
+}
+
+function isSelected(id) {
+  return selectedIds.value.includes(String(id))
+}
+
+function toggleSelected(id) {
+  const targetId = String(id || '')
+  if (!targetId) return
+  const set = new Set(selectedIds.value)
+  if (set.has(targetId)) set.delete(targetId)
+  else set.add(targetId)
+  selectedIds.value = [...set]
+}
+
+async function onBatchSetStatus(status) {
+  if (!selectedIds.value.length) {
+    showAlertModal({ type: 'error', message: 'Please select at least one specialist.' })
+    return
+  }
+  batchLoading.value = true
+  error.value = ''
+  success.value = ''
+  try {
+    const result = await api.adminBatchSetSpecialistStatus({
+      ids: selectedIds.value,
+      status
+    })
+    await loadSpecialists()
+    success.value = `Batch update done. Success: ${result?.successCount ?? 0}, Failed: ${result?.failCount ?? 0}.`
+    showAlertModal({ type: 'success', message: success.value })
+  } catch (e) {
+    error.value = e?.message || 'Batch update failed'
+    showAlertModal({ type: 'error', message: error.value })
+  } finally {
+    batchLoading.value = false
+  }
+}
+
+async function onExportCsv() {
+  exportLoading.value = true
+  error.value = ''
+  try {
+    const response = await api.adminExportSpecialists()
+    const  blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'specialists-export.csv'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    error.value = e?.message || 'Export failed'
+    showAlertModal({ type: 'error', message: error.value })
+  } finally {
+    exportLoading.value = false
   }
 }
 
@@ -509,18 +587,10 @@ watch(
 )
 
 watch(
-    () => editForm.value.bio,
-    (val) => {
-      const wordCount = countWords(val)
-      if (wordCount > BIO_MAX_WORDS) {
-        editForm.value.bio = trimToWordLimit(val, BIO_MAX_WORDS)
-        editBioLimitError.value = `Maximum ${BIO_MAX_WORDS} words allowed.`
-        return
-      }
-
-      if (wordCount < BIO_MAX_WORDS) {
-        editBioLimitError.value = ''
-      }
+    () => searchQuery.value,
+    () => {
+      const visibleIds = new Set(filteredSpecialists.value.map((item) => String(item?.id || '')))
+      selectedIds.value = selectedIds.value.filter((id) => visibleIds.has(id))
     }
 )
 </script>
@@ -697,11 +767,21 @@ watch(
           <button type="button" class="btn-neutral btn-refresh" :disabled="loading" @click="loadSpecialists">
             {{ loading ? 'Loading...' : 'Refresh' }}
           </button>
-        </div>
+          <button type="button" class="btn-neutral" :disabled="exportLoading" @click="onExportCsv">
+            {{ exportLoading ? 'Exporting...' : 'Export CSV' }}
+          </button>
+      </div>
       </div>
 
       <div class="toolbar-meta">
         <span class="meta-pill">{{ specialistCountLabel }}</span>
+        <span class="meta-pill">{{ selectedCountLabel }}</span>
+        <button type="button" class="btn-neutral toolbar-meta-btn" :disabled="batchLoading" @click="onBatchSetStatus('Active')">
+          Set Active
+        </button>
+        <button type="button" class="btn-neutral toolbar-meta-btn" :disabled="batchLoading" @click="onBatchSetStatus('Inactive')">
+          Set Inactive
+        </button>
       </div>
 
       <div v-if="loading && !(page.items || []).length" class="state muted">Loading...</div>
@@ -714,6 +794,13 @@ watch(
         <table class="table">
           <thead>
           <tr>
+            <th scope="col" class="th-select">
+              <input
+                  type="checkbox"
+                  :checked="filteredSpecialists.length > 0 && selectedIds.length === filteredSpecialists.length"
+                  @change="toggleSelectAll"
+              />
+            </th>
             <th scope="col" class="th-id">ID</th>
             <th scope="col">Name</th>
             <th scope="col">Price</th>
@@ -725,6 +812,13 @@ watch(
 
           <tbody>
           <tr v-for="s in filteredSpecialists" :key="s.id">
+            <td>
+              <input
+                  type="checkbox"
+                  :checked="isSelected(s.id)"
+                  @change="toggleSelected(s.id)"
+              />
+            </td>
             <td class="mono weak">{{ s.id ?? '--' }}</td>
             <td class="name-cell">{{ s.name ?? '--' }}</td>
             <td>{{ formatPrice(s.price) }}</td>
@@ -1279,6 +1373,10 @@ watch(
 
 .toolbar-meta {
   margin: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .meta-pill {
@@ -1291,6 +1389,16 @@ watch(
   color: #374151;
   font-size: 12px;
   font-weight: 700;
+}
+
+.toolbar-meta-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .search-input {
@@ -1346,6 +1454,10 @@ watch(
 
 .th-id {
   width: 180px;
+}
+
+.th-select {
+  width: 56px;
 }
 
 .th-actions {
@@ -1510,12 +1622,6 @@ watch(
 @media (max-width: 980px) {
   .create-grid {
     grid-template-columns: 1fr;
-  }
-
-  .toolbar-actions {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
   }
 
   .search-input {

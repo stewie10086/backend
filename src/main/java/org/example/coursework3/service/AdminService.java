@@ -9,7 +9,9 @@ import org.example.coursework3.entity.*;
 import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.repository.*;
 import org.example.coursework3.vo.AdminSlotVo;
+import org.example.coursework3.vo.BatchUpdateSpecialistStatusResultVo;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +22,11 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -114,6 +119,11 @@ public class AdminService {
 
         String userKey = "auth:user:" + userId;
 
+        ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
+        if (valueOps == null) {
+            return;
+        }
+
         // 1. 获取当前用户对应的 token
         String token = redisTemplate.opsForValue().get(userKey);
 
@@ -126,6 +136,72 @@ public class AdminService {
 
         // 3. 删除 userId -> token
         redisTemplate.delete(userKey);
+    }
+
+    @Transactional
+    public BatchUpdateSpecialistStatusResultVo batchUpdateSpecialistStatus(List<String> ids, SpecialistStatus status) {
+        if (ids == null || ids.isEmpty()) {
+            throw new MsgException("ids不能为空");
+        }
+        if (status == null) {
+            throw new MsgException("status不能为空");
+        }
+
+        Set<String> seen = new HashSet<>();
+        List<String> successIds = new ArrayList<>();
+        List<BatchUpdateSpecialistStatusResultVo.BatchFailureVo> failures = new ArrayList<>();
+        for (String id : ids) {
+            if (id == null || id.isBlank()) {
+                failures.add(new BatchUpdateSpecialistStatusResultVo.BatchFailureVo(id, "id不能为空"));
+                continue;
+            }
+            String trimmedId = id.trim();
+            if (!seen.add(trimmedId)) {
+                continue;
+            }
+            try {
+                updateSpecialistStatus(trimmedId, status);
+                successIds.add(trimmedId);
+            } catch (Exception ex) {
+                failures.add(new BatchUpdateSpecialistStatusResultVo.BatchFailureVo(trimmedId, ex.getMessage()));
+            }
+        }
+
+        return new BatchUpdateSpecialistStatusResultVo(
+                successIds.size(),
+                failures.size(),
+                successIds,
+                failures
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public String exportSpecialistsCsv() {
+        List<Specialist> specialists = specialistsRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    LocalDateTime left = a.getCreatedAt() == null ? LocalDateTime.MIN : a.getCreatedAt();
+                    LocalDateTime right = b.getCreatedAt() == null ? LocalDateTime.MIN : b.getCreatedAt();
+                    return right.compareTo(left);
+                })
+                .toList();
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("id,name,status,price,bio,expertiseNames,createdAt,updatedAt\n");
+        for (Specialist specialist : specialists) {
+            String expertiseNames = specialist.getExpertises().stream()
+                    .map(Expertise::getName)
+                    .collect(Collectors.joining(";"));
+            csv.append(csvField(specialist.getUserId())).append(',')
+                    .append(csvField(specialist.getName())).append(',')
+                    .append(csvField(specialist.getStatus() == null ? null : specialist.getStatus().name())).append(',')
+                    .append(csvField(specialist.getPrice() == null ? null : specialist.getPrice().toPlainString())).append(',')
+                    .append(csvField(specialist.getBio())).append(',')
+                    .append(csvField(expertiseNames)).append(',')
+                    .append(csvField(specialist.getCreatedAt() == null ? null : specialist.getCreatedAt().toString())).append(',')
+                    .append(csvField(specialist.getUpdatedAt() == null ? null : specialist.getUpdatedAt().toString()))
+                    .append('\n');
+        }
+        return csv.toString();
     }
 
     @Transactional
@@ -430,6 +506,17 @@ public class AdminService {
         }
         String value = detail.trim();
         return value.isEmpty() ? null : value;
+    }
+
+    private String csvField(String value) {
+        if (value == null) {
+            return "";
+        }
+        String escaped = value.replace("\"", "\"\"");
+        if (escaped.contains(",") || escaped.contains("\"") || escaped.contains("\n")) {
+            return "\"" + escaped + "\"";
+        }
+        return escaped;
     }
 
     public BookingPageResult listBookings(Integer page, Integer pageSize) {

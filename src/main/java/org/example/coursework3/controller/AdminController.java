@@ -10,8 +10,12 @@ import org.example.coursework3.service.AdminService;
 import org.example.coursework3.service.AuthService;
 import org.example.coursework3.service.CustomerBookingService;
 import org.example.coursework3.vo.AdminSlotVo;
+import org.example.coursework3.vo.BatchUpdateSpecialistStatusResultVo;
 import org.example.coursework3.vo.SingleBookingVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -70,6 +74,28 @@ public class AdminController {
         }
         adminService.deleteSpecialist(id);
     return Result.success("删除成功");
+    }
+
+    @PostMapping("/specialists/batch-status")
+    public Result<BatchUpdateSpecialistStatusResultVo> batchUpdateSpecialistStatus(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody BatchUpdateSpecialistStatusRequest request) {
+        if (!authService.verifyAsAdmin(authHeader)) {
+            return Result.error("ERROR", "请以管理员身份修改");
+        }
+        return Result.success(adminService.batchUpdateSpecialistStatus(request.getIds(), request.getStatus()));
+    }
+
+    @GetMapping("/specialists/export")
+    public ResponseEntity<String> exportSpecialists(@RequestHeader("Authorization") String authHeader) {
+        if (!authService.verifyAsAdmin(authHeader)) {
+            return ResponseEntity.status(401).body("请以管理员身份修改");
+        }
+        String csv = adminService.exportSpecialistsCsv();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=specialists-export.csv")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(csv);
     }
 
     // 5. 创建专长
