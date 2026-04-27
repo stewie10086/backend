@@ -18,7 +18,6 @@ public class AsyncConfig {
         executor.setMaxPoolSize(10);
         executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("async-");
-        System.out.println("1");
         executor.initialize();
         return executor;
     }
