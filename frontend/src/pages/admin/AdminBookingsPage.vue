@@ -13,6 +13,7 @@ const detailMap = ref({})
 const detailErrorMap = ref({})
 const detailLoadingId = ref('')
 const bookingSearchQuery = ref('')
+const exportLoading = ref(false)
 
 const totalBookings = computed(() => {
   return Math.max(Number(page.value?.total) || 0, (page.value?.items || []).length)
@@ -171,6 +172,28 @@ async function toggleBooking(row) {
   }
 }
 
+async function onExportCsv() {
+  exportLoading.value = true
+  error.value = ''
+  try {
+    const response = await api.adminExportBookings()
+    const  blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'bookings-export.csv'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    error.value = e?.message || 'Export failed'
+    showAlertModal({ type: 'error', message: error.value })
+  } finally {
+    exportLoading.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -199,6 +222,9 @@ onMounted(load)
           />
           <button type="button" class="btn-neutral btn-refresh" :disabled="loading" @click="load">
             {{ loading ? 'Loading...' : 'Refresh' }}
+          </button>
+          <button type="button" class="btn-neutral" :disabled="exportLoading" @click="onExportCsv">
+            {{ exportLoading ? 'Exporting...' : 'Export CSV' }}
           </button>
         </div>
       </div>

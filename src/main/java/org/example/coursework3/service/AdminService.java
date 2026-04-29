@@ -10,6 +10,7 @@ import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.repository.*;
 import org.example.coursework3.vo.AdminSlotVo;
 import org.example.coursework3.vo.BatchUpdateSpecialistStatusResultVo;
+import org.example.coursework3.vo.SlotVo;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -553,5 +554,36 @@ public class AdminService {
         Slot slot = slotRepository.getById(id);
         return AdminSlotVo.form(slot);
 
+    }
+
+    public String exportBookingssCsv() {
+        List<Booking> bookings = bookingRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    LocalDateTime left = a.getCreatedAt() == null ? LocalDateTime.MIN : a.getCreatedAt();
+                    LocalDateTime right = b.getCreatedAt() == null ? LocalDateTime.MIN : b.getCreatedAt();
+                    return right.compareTo(left);
+                })
+                .toList();
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("booking_id,specialist_name,customer_name,status,amount,start_time,ent_time,detail,created_at,updated_at\n");
+        for (Booking booking : bookings) {
+            Slot slot = slotRepository.getSlotById(booking.getSlotId());
+            User customer = userRepository.findById(booking.getCustomerId());
+            User specialist = userRepository.findById(booking.getSpecialistId());
+            SlotVo slotVo = SlotVo.fromSlot(slot,booking, customer.getName());
+            csv.append(csvField(booking.getId())).append(',')
+                    .append(csvField(specialist.getName())).append(',')
+                    .append(csvField(slotVo.getCustomerName())).append(',')
+                    .append(csvField(booking.getStatus() == null ? null : booking.getStatus().name())).append(',')
+                    .append(csvField(String.valueOf(slotVo.getAmount()))).append(" ").append(slotVo.getCurrency()).append(',')
+                    .append(csvField(slotVo.getStart())).append(',')
+                    .append(csvField(slotVo.getEnd())).append(',')
+                    .append(csvField(slotVo.getDetail())).append(',')
+                    .append(csvField(booking.getCreatedAt() == null ? null : booking.getCreatedAt().toString())).append(',')
+                    .append(csvField(booking.getUpdatedAt() == null ? null : booking.getUpdatedAt().toString()))
+                    .append('\n');
+        }
+        return csv.toString();
     }
 }

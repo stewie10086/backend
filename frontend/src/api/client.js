@@ -242,6 +242,8 @@ export const api = {
       request(http.post('/admin/specialists/batch-status', payload)).then(extractDataPayload),
   adminExportSpecialists: () =>
       http.get('/admin/specialists/export', { responseType: 'blob' }),
+  adminExportBookings: () =>
+      http.get('/admin/bookings/export', { responseType: 'blob' }),
   adminCreateExpertise: (payload) => request(http.post('/admin/expertise', payload)).then(extractDataPayload),
   adminUpdateExpertise: (id, payload) =>
       request(http.patch(`/admin/expertise/${id}`, payload)).then(extractDataPayload),

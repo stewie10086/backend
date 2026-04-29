@@ -186,4 +186,15 @@ public class AdminController {
         return Result.success(customerBookingService.getSingleBookingInfo(id));
     }
 
+    @GetMapping("/bookings/export")
+    public ResponseEntity<String> exportBookings(@RequestHeader("Authorization") String authHeader) {
+        if (!authService.verifyAsAdmin(authHeader)) {
+            return ResponseEntity.status(401).body("Please edit as an admin");
+        }
+        String csv = adminService.exportBookingssCsv();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=specialists-export.csv")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(csv);
+    }
 }
