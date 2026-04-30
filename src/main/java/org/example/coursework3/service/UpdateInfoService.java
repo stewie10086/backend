@@ -90,6 +90,7 @@ public class UpdateInfoService {
             throw new MsgException("New password must be different from old password");
         }
         user.setPasswordHash(newPassword);
+        userRepository.save(user);
     }
 
     private boolean hasText(String value) {
