@@ -30,7 +30,7 @@ const expertiseMap = computed(() => {
 
 const filteredItems = computed(() => {
   const q = keyword.value.trim().toLowerCase()
-  const items = page.value.items ?? []
+  const items = (page.value.items ?? []).filter((s) => String(s?.status ?? '').toLowerCase() !== 'inactive')
   if (!q) return items
   return items.filter((s) => {
     const name = (s.name ?? '').toLowerCase()
@@ -617,5 +617,4 @@ select.input {
   }
 }
 </style>
-
 

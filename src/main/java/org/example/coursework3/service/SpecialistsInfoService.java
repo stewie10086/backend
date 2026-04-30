@@ -3,6 +3,7 @@ package org.example.coursework3.service;
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.entity.Expertise;
 import org.example.coursework3.entity.Specialist;
+import org.example.coursework3.entity.SpecialistStatus;
 import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.repository.SpecialistsRepository;
 import org.example.coursework3.vo.*;
@@ -52,10 +53,28 @@ public class SpecialistsInfoService {
             specialistPage = specialistRepository.findAll(pageable);
         }
 
-        List<SpecialistsVo> items = specialistPage.getContent().stream().map(s -> {
-            List<String> expertiseIds = s.getExpertises().stream().map(Expertise::getId).toList();
-            return new SpecialistsVo(s.getUserId(), s.getName(), s.getStatus(), expertiseIds, s.getPrice());
-        }).toList();
+        List<SpecialistsVo> items = new ArrayList<>();
+
+        for (Specialist s : specialistPage.getContent()) {
+//            if (s.getStatus()== SpecialistStatus.Inactive){
+//                continue;
+//            }
+            List<String> expertiseIds = new ArrayList<>();
+
+            for (Expertise e : s.getExpertises()) {
+                expertiseIds.add(e.getId());
+            }
+
+            SpecialistsVo vo = new SpecialistsVo(
+                    s.getUserId(),
+                    s.getName(),
+                    s.getStatus(),
+                    expertiseIds,
+                    s.getPrice()
+            );
+
+            items.add(vo);
+        }
 
         return new SpecialistsPageVo(
                 items,
