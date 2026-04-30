@@ -10,6 +10,7 @@ import org.example.coursework3.repository.SpecialistsRepository;
 import org.example.coursework3.repository.UserRepository;
 import org.example.coursework3.dto.response.AuthResult;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +21,7 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
     private final UserRepository userRepository;
     private final SpecialistsRepository specialistsRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public boolean verifyAsAdmin(String authHeader){
         return getRoleByAuth(authHeader) == Role.Admin;
@@ -100,7 +102,7 @@ public class AuthService {
 
         String passwordHash = user.getPasswordHash();
 
-        if (!passwordHash.equals(password)) {
+        if (!passwordEncoder.matches(password, passwordHash)) {
             throw new MsgException("Incorrect password");
         }
         if (Role.Specialist == user.getRole()){
@@ -139,7 +141,7 @@ public class AuthService {
             user.setName(name);
             user.setEmail(email);
             user.setRole(Role.Customer);
-            user.setPasswordHash(password);
+            user.setPasswordHash(passwordEncoder.encode(password));
 
 
             userRepository.save(user);

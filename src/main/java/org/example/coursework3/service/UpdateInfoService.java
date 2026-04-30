@@ -5,6 +5,7 @@ import org.example.coursework3.dto.request.UpdateSelfInfoRequest;
 import org.example.coursework3.entity.User;
 import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class UpdateInfoService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public User updateSelfInfo(String userId, UpdateSelfInfoRequest request) {
         User user;
@@ -65,7 +67,7 @@ public class UpdateInfoService {
         if (!hasText(oldPassword)) {
             throw new MsgException("Please enter current password");
         }
-        if (!user.getPasswordHash().equals(oldPassword)) {
+        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
             throw new MsgException("Old password is incorrect");
         }
     }
@@ -74,22 +76,16 @@ public class UpdateInfoService {
         if (!hasText(oldPassword) || !hasText(newPassword) || !hasText(confirmPassword)) {
             throw new MsgException("oldPassword, newPassword and confirmPassword are required");
         }
-        if (!user.getPasswordHash().equals(oldPassword)) {
+        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
             throw new MsgException("Old password is incorrect");
         }
         if (!newPassword.equals(confirmPassword)) {
             throw new MsgException("New password and confirm password do not match");
         }
-        if (newPassword.chars().anyMatch(Character::isWhitespace)) {
-            throw new MsgException("New password cannot contain spaces");
-        }
-        if (newPassword.length() < 8) {
-            throw new MsgException("New password must be at least 8 characters");
-        }
         if (newPassword.equals(oldPassword)) {
             throw new MsgException("New password must be different from old password");
         }
-        user.setPasswordHash(newPassword);
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
