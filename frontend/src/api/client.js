@@ -332,5 +332,6 @@ export const api = {
   specialistGetSlot: (id) => request(http.get(`/specialist/slots/${id}`)).then(extractDataPayload),
   specialistCreateSlot: (payload) => request(http.post('/specialist/slots', payload)).then(extractDataPayload),
   specialistUpdateSlot: (id, payload) => request(http.patch(`/specialist/slots/${id}`, payload)).then(extractDataPayload),
-  specialistDeleteSlot: (id) => request(http.delete(`/specialist/slots/${id}`)).then(extractDataPayload)
+  specialistDeleteSlot: (id) => request(http.delete(`/specialist/slots/${id}`)).then(extractDataPayload),
+  specialistListPricingRules: () => request(http.get('/specialist/pricing-rules')).then(extractListPayload)
 }

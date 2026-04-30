@@ -7,8 +7,10 @@ import org.example.coursework3.dto.request.RejectRequest;
 import org.example.coursework3.result.Result;
 import org.example.coursework3.service.AdminService;
 import org.example.coursework3.service.AuthService;
+import org.example.coursework3.service.PricingService;
 import org.example.coursework3.service.SpecialistBookingService;
 import org.example.coursework3.vo.AdminSlotVo;
+import org.example.coursework3.vo.PricingRuleVo;
 import org.example.coursework3.vo.SingleBookingVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,8 @@ public class SpecialistController {
     private AuthService authService;
     @Autowired
     private AdminService adminService;
+    @Autowired
+    private PricingService pricingService;
 
     // list booking requests
     @GetMapping("/booking-requests")
@@ -119,6 +123,15 @@ public class SpecialistController {
             return Result.error("ERROR", "please use Specialist role");
         }
         return Result.success(adminService.getSingleSlotInfo(id));
+    }
+
+    @GetMapping("/pricing-rules")
+    public Result<List<PricingRuleVo>> listMyPricingRules(@RequestHeader("Authorization") String authHeader) {
+        if (!authService.verifyAsSpecialist(authHeader)) {
+            return Result.error("ERROR", "please use Specialist role");
+        }
+        String specialistId = authService.getUserIdByAuth(authHeader);
+        return Result.success(pricingService.listRules(specialistId, null, null));
     }
 
 
