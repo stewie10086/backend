@@ -15,7 +15,7 @@
     <artifactId>coursework3</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>coursework3</name>
-    <description>后端注册与验证码功能项目</description>
+    <description>专家预定系统</description>
 
     <properties>
         <java.version>17</java.version>
@@ -120,7 +120,7 @@
 
     <build>
         <plugins>
-            <!-- Maven 编译器：关键，确保 Lombok 注解处理器生效 -->
+            <!-- Maven 编译器， Lombok 注解处理器生效 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
