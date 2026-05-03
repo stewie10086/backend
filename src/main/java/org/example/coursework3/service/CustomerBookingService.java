@@ -65,30 +65,30 @@ public class CustomerBookingService {
     public CreateBookingResult creatBooking(String userId, CreateBookingRequest request) {
         String paymentId = safeTrim(request.getPaymentId());
         if (paymentId.isBlank()) {
-            throw new MsgException("请先完成支付");
+            throw new MsgException("Please complete payment first");
         }
         String paymentIntentId = (String) redisTemplate.opsForValue().get(OUT_TRADE_KEY + paymentId);
         if (paymentIntentId == null) {
-            throw new MsgException("支付单无效或已过期，请重新支付");
+            throw new MsgException("Payment expired! Try again!");
         }
         PaymentDraft draft = (PaymentDraft) redisTemplate.opsForValue().get(PAYMENT_DRAFT_KEY + paymentIntentId);
         if (draft == null) {
-            throw new MsgException("支付信息无效或已过期，请重新支付");
+            throw new MsgException("Payment expired! Try again!");
         }
         if (!userId.equals(draft.getCustomerId())) {
-            throw new MsgException("无权限创建该预约");
+            throw new MsgException("No right!");
         }
         if (!draft.isPaid()) {
-            throw new MsgException("支付尚未完成，请完成支付后再提交预约");
+            throw new MsgException("Please complete payment first");
         }
         if (!safeTrim(request.getSpecialistId()).equals(safeTrim(draft.getSpecialistId()))
                 || !safeTrim(request.getSlotId()).equals(safeTrim(draft.getSlotId()))) {
-            throw new MsgException("支付信息与预约信息不一致，请重新支付");
+            throw new MsgException("Invalid Payment Info");
         }
 
         Slot slot = slotRepository.getById(request.getSlotId());
         if (!slot.getAvailable()){
-            throw new MsgException("请选择有效时段");
+            throw new MsgException("Please choose a valid slot");
         }
         Booking booking = new Booking();
         booking.setCustomerId(userId);

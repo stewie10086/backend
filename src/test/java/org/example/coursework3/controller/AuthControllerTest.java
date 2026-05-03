@@ -81,7 +81,7 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.message").value("验证码已发送"));
+                .andExpect(jsonPath("$.message").value("Verification code sent."));
 
         verify(mailService).sendCaptcha("alice@example.com");
     }
@@ -127,7 +127,7 @@ class AuthControllerTest {
                         .header("Authorization", "Bearer token-123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.message").value("已登出"));
+                .andExpect(jsonPath("$.message").value("Logged out"));
 
         verify(authService).deleteToken("token-123");
     }
@@ -158,13 +158,13 @@ class AuthControllerTest {
         request.setEmail("alice@example.com");
         request.setPassword("wrong");
 
-        when(authService.login("alice@example.com", "wrong")).thenThrow(new MsgException("密码不正确"));
+        when(authService.login("alice@example.com", "wrong")).thenThrow(new MsgException("Incorrect password"));
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("密码不正确"));
+                .andExpect(jsonPath("$.message").value("Incorrect password"));
     }
 
     // sql 测试用例 users：u1 Alice 

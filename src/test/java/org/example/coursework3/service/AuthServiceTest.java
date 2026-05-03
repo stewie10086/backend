@@ -10,8 +10,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +27,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -41,12 +43,15 @@ class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
+    @Mock
+    private static BCryptPasswordEncoder passwordEncoder;
+
     @Test
     void login_succeedsForAliceFromSql() {
         User alice = userAlice();
         when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(alice));
-
-        User out = authService.login("alice@example.com", "hashed_pw_1");
+        when(passwordEncoder.matches("123", alice.getPasswordHash())).thenReturn(true);
+        User out = authService.login("alice@example.com", "123");
 
         assertEquals("u1", out.getId());
         assertEquals("Alice", out.getName());
@@ -57,7 +62,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(userAlice()));
 
         MsgException ex = assertThrows(MsgException.class, () -> authService.login("alice@example.com", "wrong"));
-        assertEquals("密码不正确", ex.getMessage());
+        assertEquals("Incorrect password", ex.getMessage());
     }
 
     @Test
@@ -65,7 +70,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
         MsgException ex = assertThrows(MsgException.class, () -> authService.login("unknown@example.com", "x"));
-        assertEquals("用户不存在", ex.getMessage());
+        assertEquals("User does not exist", ex.getMessage());
     }
 
     @Test
@@ -85,7 +90,7 @@ class AuthServiceTest {
         when(valueOps.get("captcha:alice@example.com")).thenReturn("999999");
 
         MsgException ex = assertThrows(MsgException.class, () -> authService.loginByCode("alice@example.com", "123456"));
-        assertEquals("验证码错误或已过期", ex.getMessage());
+        assertEquals("Verification code is incorrect or expired", ex.getMessage());
     }
 
     @Test
@@ -95,7 +100,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail("charlie@example.com")).thenReturn(Optional.empty());
 
         MsgException ex = assertThrows(MsgException.class, () -> authService.loginByCode("charlie@example.com", "123456"));
-        assertEquals("该邮箱未注册账号", ex.getMessage());
+        assertEquals("This email is not registered.", ex.getMessage());
     }
 
     @Test
@@ -121,7 +126,7 @@ class AuthServiceTest {
         when(valueOps.get("auth:token:bad")).thenReturn(null);
 
         MsgException ex = assertThrows(MsgException.class, () -> authService.getUserIdByToken("bad"));
-        assertEquals("token无效或已过期", ex.getMessage());
+        assertEquals("Token is invalid or expired", ex.getMessage());
     }
 
     @Test
@@ -152,7 +157,7 @@ class AuthServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> authService.register("Bob", "bob@example.com", "123456", "pw"));
         assertNotNull(ex.getCause());
-        assertEquals("该邮箱已被注册", ex.getCause().getMessage());
+        assertEquals("This email is already registered.", ex.getCause().getMessage());
         verify(userRepository, never()).save(any());
     }
 
@@ -163,7 +168,7 @@ class AuthServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> authService.register("Alice", "alice@example.com", "123456", "pw"));
-        assertEquals("验证码错误或已过期", ex.getCause().getMessage());
+        assertEquals("Verification code is incorrect or expired", ex.getCause().getMessage());
     }
 
     @Test
@@ -209,7 +214,7 @@ class AuthServiceTest {
         user.setEmail("alice@example.com");
         user.setRole(Role.Customer);
         user.setAvatar(null);
-        user.setPasswordHash("hashed_pw_1");
+        user.setPasswordHash("$2a$10$ccRw3eseE.kKG8DYHtPnt.qah3vDo2qRHusxhO1xlNFZjV0PF4FPS");
         return user;
     }
 
@@ -220,7 +225,7 @@ class AuthServiceTest {
         user.setEmail("bob@example.com");
         user.setRole(Role.Customer);
         user.setAvatar(null);
-        user.setPasswordHash("hashed_pw_2");
+        user.setPasswordHash("$2a$10$ccRw3eseE.kKG8DYHtPnt.qah3vDo2qRHusxhO1xlNFZjV0PF4FPS");
         return user;
     }
 }

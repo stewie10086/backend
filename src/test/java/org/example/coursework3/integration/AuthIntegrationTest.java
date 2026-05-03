@@ -54,8 +54,6 @@ class AuthIntegrationTest {
     @MockBean
     private StringRedisTemplate redisTemplate;
 
-    @MockBean
-    private AliyunMailService aliyunMailService;
 
     @BeforeEach
     void resetAndSeed() {
@@ -73,11 +71,11 @@ class AuthIntegrationTest {
       
         jdbcTemplate.update(
                 "INSERT INTO users (id, name, email, password_hash, role, avatar) VALUES (?,?,?,?,?,?)",
-                "u1", "Alice", "alice@example.com", "hashed_pw_1", "Customer", null
+                "u1", "Alice", "alice@example.com", "$2a$10$ccRw3eseE.kKG8DYHtPnt.qah3vDo2qRHusxhO1xlNFZjV0PF4FPS", "Customer", null
         );
         jdbcTemplate.update(
                 "INSERT INTO users (id, name, email, password_hash, role, avatar) VALUES (?,?,?,?,?,?)",
-                "u2", "Bob", "bob@example.com", "hashed_pw_2", "Customer", null
+                "u2", "Bob", "bob@example.com", "$2a$10$ccRw3eseE.kKG8DYHtPnt.qah3vDo2qRHusxhO1xlNFZjV0PF4FPS", "Customer", null
         );
     }
 
@@ -88,7 +86,7 @@ class AuthIntegrationTest {
 
         LoginRequest request = new LoginRequest();
         request.setEmail("alice@example.com");
-        request.setPassword("hashed_pw_1");
+        request.setPassword("123");
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -3,14 +3,11 @@ package org.example.coursework3.integration;
 import org.example.coursework3.entity.BookingStatus;
 import org.example.coursework3.entity.SpecialistStatus;
 import org.example.coursework3.repository.SpecialistsRepository;
-import org.example.coursework3.service.AliyunMailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,13 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
-        "spring.datasource.url=${TEST_DB_URL:jdbc:mysql://localhost:3306/booking_system?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}",
+        "spring.datasource.url=${TEST_DB_URL:jdbc:mysql://localhost:3306/booking_system?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}",
         "spring.datasource.username=${TEST_DB_USERNAME:root}",
-        "spring.datasource.password=${TEST_DB_PASSWORD:1234567890yang}",
-        "aliyun.mail.access-key-id=test-ak",
-        "aliyun.mail.access-key-secret=test-sk",
-        "aliyun.mail.region=cn-hangzhou",
-        "aliyun.mail.from-address=test@example.com"
+        "spring.datasource.password=${TEST_DB_PASSWORD:123456}",
 })
 @AutoConfigureMockMvc(addFilters = false)
 class SpecialistsIntegrationTest {
@@ -43,12 +36,6 @@ class SpecialistsIntegrationTest {
 
     @Autowired
     private SpecialistsRepository specialistsRepository;
-
-    @MockBean
-    private StringRedisTemplate redisTemplate;
-
-    @MockBean
-    private AliyunMailService aliyunMailService;
 
     @BeforeEach
     void resetAndSeed() {

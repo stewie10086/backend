@@ -52,7 +52,7 @@ class UpdateInfoServiceTest {
         req.setName("X");
 
         MsgException ex = assertThrows(MsgException.class, () -> updateInfoService.updateSelfInfo("missing", req));
-        assertEquals("用户不存在", ex.getMessage());
+        assertEquals("User not found", ex.getMessage());
     }
 
     private static User userAlice() {

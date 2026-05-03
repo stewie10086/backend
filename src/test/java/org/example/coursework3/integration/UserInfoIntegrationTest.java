@@ -71,7 +71,7 @@ class UserInfoIntegrationTest {
        
         jdbcTemplate.update(
                 "INSERT INTO users (id, name, email, password_hash, role, avatar) VALUES (?,?,?,?,?,?)",
-                "u1", "Alice", "alice@example.com", "hashed_pw_1", "Customer", null
+                "u1", "Alice", "alice@example.com", "$2a$10$ccRw3eseE.kKG8DYHtPnt.qah3vDo2qRHusxhO1xlNFZjV0PF4FPS", "Customer", null
         );
     }
 
