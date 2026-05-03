@@ -13,6 +13,7 @@ import org.example.coursework3.vo.BatchUpdateSpecialistStatusResultVo;
 import org.example.coursework3.vo.SlotVo;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,7 @@ public class AdminService {
     private final SlotRepository slotRepository;
     private final BookingRepository bookingRepository;
     private final StringRedisTemplate redisTemplate;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public Specialist createSpecialist(CreateSpecialistRequest request) {
@@ -51,10 +53,10 @@ public class AdminService {
         user.setName(request.getName());
         user.setEmail(request.getUserEmail());
         user.setRole(Role.Specialist);
-        user.setPasswordHash(request.getPassword());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
-        // 2. 创建专家（userId = user.getId()）
+        // 2. 创建专家
         Specialist specialist = new Specialist(user.getId(), user.getName(), request.getPrice(), request.getBio());
         List<Expertise> expertiseList = new ArrayList<>();
         for (String expertiseId : request.getExpertiseIds()) {
