@@ -8,7 +8,6 @@ const authRouteNames = [
   "register",
   "dev-login",
   "expert-admin-login",
-  // Keep compatibility with component-style names if route naming changes later.
   "LoginPage",
   "RegisterPage",
   "DevLoginPage",
