@@ -528,7 +528,7 @@ onMounted(async () => {
   box-shadow: 0 8px 18px rgba(17, 24, 39, 0.06);
 }
 
-/* ✅ 你的按钮风格（最终版） */
+
 .btn-neutral {
   height: 44px;
   padding: 0 14px;
@@ -544,7 +544,7 @@ onMounted(async () => {
   opacity: 0.92;
 }
 
-/* ✅ 表格风格（第一份代码） */
+
 .table-wrap {
   overflow-x: auto;
   border: 1px solid #eceff3;
@@ -577,7 +577,6 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
-/* ✅ 状态 */
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -596,7 +595,7 @@ onMounted(async () => {
   color: #991b1b;
 }
 
-/* ✅ 操作按钮 */
+
 .row-actions {
   display: flex;
   gap: 8px;
