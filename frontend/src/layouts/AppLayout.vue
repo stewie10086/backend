@@ -421,7 +421,7 @@ onBeforeUnmount(() => {
   margin-top: 12px;
 }
 
-/* 感叹号 */
+
 .payment-qr-icon {
   width: 18px;
   height: 18px;
@@ -437,10 +437,10 @@ onBeforeUnmount(() => {
 
 }
 
-/* tooltip 本体 */
+
 .payment-qr-tooltip {
   position: absolute;
-  bottom: 130%; /* 在上方 */
+  bottom: 130%;
   left: 50%;
   transform: translateX(-50%);
   width: 240px;
@@ -458,7 +458,7 @@ onBeforeUnmount(() => {
   transition: opacity 0.2s ease;
 }
 
-/* hover 显示 */
+
 .payment-qr-tip-wrap:hover .payment-qr-tooltip {
   opacity: 1;
 }

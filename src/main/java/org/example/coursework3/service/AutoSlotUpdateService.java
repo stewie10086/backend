@@ -29,7 +29,7 @@ public class AutoSlotUpdateService {
         LocalDateTime now = LocalDateTime.now(APP_ZONE);
         List<Slot> slots = slotRepository.getSlotByStartTimeBeforeAndAvailableTrue(now.plusMinutes(CANCEL_BEFORE_START_MINUTES));
         if (slots.isEmpty()){
-            log.info("暂无过期时段");
+            log.info("No expired slots");
         }else{
             for (Slot slot : slots){
                 slot.setAvailable(false);

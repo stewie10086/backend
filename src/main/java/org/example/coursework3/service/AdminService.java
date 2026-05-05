@@ -42,6 +42,13 @@ public class AdminService {
     private final StringRedisTemplate redisTemplate;
     private final BCryptPasswordEncoder passwordEncoder;
 
+    /**
+     *
+     * @param request (name, userEmail, password, expertiseIds[], bios)
+     *                operation (add/delete/query/update)
+     *                to other components of the system(Redis, Mysql)
+     * @return Specialist specialist
+     */
     @Transactional
     public Specialist createSpecialist(CreateSpecialistRequest request) {
         if (userRepository.findByEmail(request.getUserEmail()).isPresent()) {

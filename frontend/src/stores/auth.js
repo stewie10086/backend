@@ -35,7 +35,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async bootstrap() {
       this.initialized = true
-      // 优先用本地 user 让路由权限判定可用（无后端也能跑）
+      // 优先用本地 user 让路由权限判定可用
       const localUser = this.loadUserFromStorage()
       if (localUser) this.user = localUser
 

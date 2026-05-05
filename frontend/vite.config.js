@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue'
 
 const API_TARGET = 'http://localhost:8080'
 
-// 开发时未设置 VITE_API_BASE_URL 则走同源，需把 API 前缀代理到后端，避免落到 index.html
+
 const proxyPrefixes = [
   '/auth',
   '/expertise',
